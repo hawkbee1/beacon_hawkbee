@@ -19,6 +19,10 @@ part 'client/beacon_client.dart';
 part 'client/beacon_consumer.dart';
 part 'client/beacon_producer.dart';
 part 'configuration/log_level.dart';
+part 'message/beacon_message.dart';
+part 'message/permission_request_message.dart';
+part 'message/permission_response_message.dart';
+part 'message/disconnect_message.dart';
 
 /// Core Beacon class that serves as the main entry point for the SDK.
 class Beacon {
