@@ -24,7 +24,7 @@ part 'configuration/log_level.dart';
 class Beacon {
   /// The singleton instance of the Beacon SDK.
   static Beacon? _instance;
-  
+
   /// Gets the singleton instance of the Beacon SDK.
   static Beacon get instance {
     if (_instance == null) {
@@ -32,7 +32,7 @@ class Beacon {
     }
     return _instance!;
   }
-  
+
   /// Initializes the Beacon SDK.
   static Future<Beacon> init({
     required AppMetadata appMetadata,
@@ -41,28 +41,22 @@ class Beacon {
     if (_instance != null) {
       return _instance!;
     }
-    
-    _instance = Beacon._internal(
-      appMetadata: appMetadata,
-      logLevel: logLevel,
-    );
-    
+
+    _instance = Beacon._internal(appMetadata: appMetadata, logLevel: logLevel);
+
     await _instance!._initialize();
-    
+
     return _instance!;
   }
-  
+
   /// The application metadata.
   final AppMetadata appMetadata;
-  
+
   /// The current log level.
   final LogLevel logLevel;
-  
-  Beacon._internal({
-    required this.appMetadata,
-    required this.logLevel,
-  });
-  
+
+  Beacon._internal({required this.appMetadata, required this.logLevel});
+
   Future<void> _initialize() async {
     // Initialize core components
     // This will be implemented later
