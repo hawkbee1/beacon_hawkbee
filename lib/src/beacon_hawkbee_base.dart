@@ -27,6 +27,11 @@ part 'storage/storage_manager.dart';
 part 'storage/secure_storage.dart';
 part 'crypto/crypto_service.dart';
 part 'crypto/key_pair.dart';
+part 'transport/transport.dart';
+part 'transport/data/pairing_message.dart';
+part 'transport/data/connection_message.dart';
+part 'transport/p2p/p2p_transport.dart';
+part 'transport/p2p/p2p_client.dart';
 
 /// Core Beacon class that serves as the main entry point for the SDK.
 class Beacon {

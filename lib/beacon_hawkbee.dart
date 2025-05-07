@@ -20,6 +20,9 @@ export 'src/data/signing_type.dart';
 export 'src/client/beacon_client.dart';
 export 'src/client/beacon_consumer.dart';
 export 'src/client/beacon_producer.dart';
+export 'src/client/impl/client_factory.dart';
+export 'src/client/impl/dapp_client.dart';
+export 'src/client/impl/wallet_client.dart';
 
 // Configuration
 export 'src/configuration/log_level.dart';
@@ -32,3 +35,24 @@ export 'src/message/permission_response_message.dart';
 
 // Blockchain abstractions
 export 'src/blockchain/blockchain.dart';
+export 'src/blockchain/tezos/tezos_blockchain.dart';
+export 'src/blockchain/tezos/message/tezos_operation_request.dart';
+
+// Storage
+export 'src/storage/storage_manager.dart';
+export 'src/storage/secure_storage.dart';
+export 'src/storage/impl/shared_preferences_storage.dart';
+export 'src/storage/impl/flutter_secure_storage_impl.dart';
+
+// Transport layer
+export 'src/transport/transport.dart';
+export 'src/transport/data/connection_message.dart';
+export 'src/transport/data/pairing_message.dart';
+export 'src/transport/p2p/p2p_client.dart';
+export 'src/transport/p2p/p2p_transport.dart';
+export 'src/transport/p2p/matrix/matrix_client_provider.dart';
+
+// Cryptography
+export 'src/crypto/crypto_service.dart';
+export 'src/crypto/key_pair.dart';
+export 'src/crypto/impl/sodium_crypto_service.dart';
