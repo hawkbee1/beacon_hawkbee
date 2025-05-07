@@ -23,6 +23,10 @@ part 'message/beacon_message.dart';
 part 'message/permission_request_message.dart';
 part 'message/permission_response_message.dart';
 part 'message/disconnect_message.dart';
+part 'storage/storage_manager.dart';
+part 'storage/secure_storage.dart';
+part 'crypto/crypto_service.dart';
+part 'crypto/key_pair.dart';
 
 /// Core Beacon class that serves as the main entry point for the SDK.
 class Beacon {

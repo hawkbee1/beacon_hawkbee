@@ -11,6 +11,10 @@ dependencies:
   uuid: ^3.0.7
   http: ^1.1.0
   web_socket_channel: ^2.4.0
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^4.2.1
+  pointycastle: ^4.0.0
+  sodium: ^3.4.5
 
 dev_dependencies:
   lints: ^2.1.0

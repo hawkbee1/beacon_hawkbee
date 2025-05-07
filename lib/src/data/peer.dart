@@ -2,7 +2,7 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
 /// Represents a peer in the Beacon network.
 ///
-/// A peer can be a dApp or a wallet that participates in the Beacon protocol.
+/// Peers are either dApps or wallets that communicate with each other.
 class Peer {
   /// The unique identifier of this peer.
   final String id;
@@ -10,16 +10,16 @@ class Peer {
   /// The name of this peer.
   final String name;
 
-  /// The public key of this peer used for secure communication.
+  /// The public key of this peer, used for secure communication.
   final String publicKey;
 
-  /// The protocol version used by this peer.
+  /// The protocol version supported by this peer.
   final String version;
 
-  /// Optional app URL for this peer.
+  /// An optional URL to the peer's application.
   final String? appUrl;
 
-  /// Optional icon URL for this peer.
+  /// An optional URL to the peer's icon.
   final String? icon;
 
   /// Creates a new [Peer] instance.
