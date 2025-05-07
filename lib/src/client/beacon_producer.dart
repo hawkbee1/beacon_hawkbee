@@ -5,10 +5,7 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 /// This interface is typically implemented by wallet clients that need to
 /// respond to requests from dApps.
 abstract class BeaconProducer extends BeaconClient {
-  BeaconProducer({
-    required super.appMetadata,
-    required super.beaconId,
-  });
+  BeaconProducer({required super.appMetadata, required super.beaconId});
 
   /// Responds to a permission request with an approval.
   ///

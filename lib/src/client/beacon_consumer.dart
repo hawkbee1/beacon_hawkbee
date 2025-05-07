@@ -5,10 +5,7 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 /// This interface is typically implemented by dApp clients that need to
 /// receive responses from wallets.
 abstract class BeaconConsumer extends BeaconClient {
-  BeaconConsumer({
-    required super.appMetadata,
-    required super.beaconId,
-  });
+  BeaconConsumer({required super.appMetadata, required super.beaconId});
 
   /// Requests permissions from a wallet.
   ///

@@ -47,7 +47,7 @@ class Permission {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is Permission &&
         other.blockchainIdentifier == blockchainIdentifier &&
         other.accountId == accountId &&
