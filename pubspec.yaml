@@ -1,15 +1,17 @@
 name: beacon_hawkbee
-description: A starting point for Dart libraries or applications.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: Dart implementation of the Beacon protocol for connecting blockchain dApps with wallets
+version: 0.1.0
+homepage: https://github.com/yourusername/beacon_hawkbee
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.0.0
 
-# Add regular dependencies here.
 dependencies:
-  # path: ^1.8.0
+  crypto: ^3.0.3
+  uuid: ^3.0.7
+  http: ^1.1.0
+  web_socket_channel: ^2.4.0
 
 dev_dependencies:
-  lints: ^5.0.0
+  lints: ^2.1.0
   test: ^1.24.0
