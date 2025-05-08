@@ -2,8 +2,20 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
 /// Represents a response to a permission request from a wallet to a dApp.
 class PermissionResponseMessage extends BeaconMessage {
-  /// The account that was granted permissions.
-  final Account account;
+  /// The ID of the request being responded to.
+  final String requestId;
+
+  /// The public key of the wallet.
+  final String publicKey;
+
+  /// The network that permissions were granted for.
+  final Network network;
+
+  /// The wallet address.
+  final String address;
+
+  /// The application metadata.
+  final AppMetadata appMetadata;
 
   /// The granted scopes/permissions.
   final List<String> scopes;
@@ -11,16 +23,22 @@ class PermissionResponseMessage extends BeaconMessage {
   /// Creates a new [PermissionResponseMessage] instance.
   PermissionResponseMessage({
     required String id,
+    required String senderId,
     required String version,
-    required BeaconPeer sender,
-    required BeaconPeer destination,
-    required this.account,
-    required this.scopes,
+    required Connection origin,
+    required Connection destination,
+    required this.requestId,
+    required this.publicKey,
+    required this.network,
+    required this.address,
+    required this.appMetadata,
+    this.scopes = const [],
   }) : super(
           id: id,
           type: BeaconMessageType.permissionResponse,
           version: version,
-          sender: sender,
+          senderId: senderId,
+          origin: origin,
           destination: destination,
         );
 
@@ -29,12 +47,19 @@ class PermissionResponseMessage extends BeaconMessage {
     return PermissionResponseMessage(
       id: json['id'] as String,
       version: json['version'] as String,
-      sender: BeaconPeer.fromJson(json['sender'] as Map<String, dynamic>),
+      senderId: json['senderId'] as String,
+      origin: Connection.fromJson(json['origin'] as Map<String, dynamic>),
       destination:
-          BeaconPeer.fromJson(json['destination'] as Map<String, dynamic>),
-      account: Account.fromJson(json['account'] as Map<String, dynamic>),
-      scopes:
-          (json['scopes'] as List<dynamic>).map((e) => e as String).toList(),
+          Connection.fromJson(json['destination'] as Map<String, dynamic>),
+      requestId: json['requestId'] as String,
+      publicKey: json['publicKey'] as String,
+      network: Network.fromJson(json['network'] as Map<String, dynamic>),
+      address: json['address'] as String,
+      appMetadata:
+          AppMetadata.fromJson(json['appMetadata'] as Map<String, dynamic>),
+      scopes: json['scopes'] != null
+          ? (json['scopes'] as List<dynamic>).map((e) => e as String).toList()
+          : const [],
     );
   }
 
@@ -42,11 +67,16 @@ class PermissionResponseMessage extends BeaconMessage {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'type': type,
+      'type': type.value,
       'version': version,
-      'sender': sender.toJson(),
+      'senderId': senderId,
+      'origin': origin.toJson(),
       'destination': destination.toJson(),
-      'account': account.toJson(),
+      'requestId': requestId,
+      'publicKey': publicKey,
+      'network': network.toJson(),
+      'address': address,
+      'appMetadata': appMetadata.toJson(),
       'scopes': scopes,
     };
   }

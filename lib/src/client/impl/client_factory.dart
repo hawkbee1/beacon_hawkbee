@@ -42,7 +42,7 @@ class ClientFactory {
     );
 
     try {
-      // Initialize the P2P client
+      // Initialize the P2P client - no parameters needed
       await p2pClient.init();
     } catch (e) {
       throw Exception('Failed to initialize P2P client: $e');
@@ -93,7 +93,7 @@ class ClientFactory {
     );
 
     try {
-      // Initialize the P2P client
+      // Initialize the P2P client - no parameters needed
       await p2pClient.init();
     } catch (e) {
       throw Exception('Failed to initialize P2P client: $e');

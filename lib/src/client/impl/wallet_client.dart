@@ -19,11 +19,14 @@ class WalletClient extends BeaconProducer {
   final Transport _transport;
 
   /// Message stream subscription.
-  StreamSubscription<ConnectionMessage>? _messageSubscription;
+  StreamSubscription<BeaconMessage>? _messageSubscription;
 
   /// Stream controller for beacon messages.
   final StreamController<BeaconMessage> _messageController =
       StreamController<BeaconMessage>.broadcast();
+
+  /// Connection state flag
+  bool _isConnected = false;
 
   /// Creates a new [WalletClient] instance.
   WalletClient({
@@ -56,10 +59,16 @@ class WalletClient extends BeaconProducer {
           });
         });
       }).catchError((e) {
-        controller.addError(BeaconError('Failed to connect: $e'));
+        controller.addError(BeaconError(
+          code: BeaconError.unknownError,
+          description: 'Failed to connect: $e',
+        ));
       });
     } catch (e) {
-      controller.addError(BeaconError('Failed to connect: $e'));
+      controller.addError(BeaconError(
+        code: BeaconError.unknownError,
+        description: 'Failed to connect: $e',
+      ));
     }
 
     return controller.stream;

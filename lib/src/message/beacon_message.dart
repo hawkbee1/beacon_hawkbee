@@ -153,12 +153,20 @@ abstract class BeaconMessage {
   /// The sender identifier.
   final String senderId;
 
+  /// The sender of the message.
+  final Connection origin;
+
+  /// The destination of the message.
+  final Connection destination;
+
   /// Creates a new [BeaconMessage] instance.
   BeaconMessage({
     required this.id,
     required this.type,
     required this.version,
     required this.senderId,
+    required this.origin,
+    required this.destination,
   });
 
   /// Factory constructor to create a message from JSON.

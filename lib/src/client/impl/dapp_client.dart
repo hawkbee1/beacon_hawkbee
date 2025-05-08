@@ -21,7 +21,10 @@ class DAppClient extends BeaconConsumer {
   final Map<String, Completer<BeaconMessage>> _responseCompleters = {};
 
   /// Message stream subscription.
-  StreamSubscription<ConnectionMessage>? _messageSubscription;
+  StreamSubscription<BeaconMessage>? _messageSubscription;
+
+  /// Connection state flag
+  bool _isConnected = false;
 
   /// Creates a new [DAppClient] instance.
   DAppClient({
@@ -61,10 +64,16 @@ class DAppClient extends BeaconConsumer {
           });
         });
       }).catchError((e) {
-        controller.addError(BeaconError('Failed to connect: $e'));
+        controller.addError(BeaconError(
+          code: BeaconError.unknownError,
+          description: 'Failed to connect: $e',
+        ));
       });
     } catch (e) {
-      controller.addError(BeaconError('Failed to connect: $e'));
+      controller.addError(BeaconError(
+        code: BeaconError.unknownError,
+        description: 'Failed to connect: $e',
+      ));
     }
 
     return controller.stream;

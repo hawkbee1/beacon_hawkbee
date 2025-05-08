@@ -9,22 +9,24 @@ class PermissionRequestMessage extends BeaconMessage {
   final Network network;
 
   /// The desired scopes/permissions.
-  final List<String> scopes;
+  final List<String>? scopes;
 
   /// Creates a new [PermissionRequestMessage] instance.
   PermissionRequestMessage({
     required String id,
+    required String senderId,
     required String version,
-    required BeaconPeer sender,
-    required BeaconPeer destination,
+    required Connection origin,
+    required Connection destination,
     required this.appMetadata,
     required this.network,
-    required this.scopes,
+    this.scopes,
   }) : super(
           id: id,
           type: BeaconMessageType.permissionRequest,
           version: version,
-          sender: sender,
+          senderId: senderId,
+          origin: origin,
           destination: destination,
         );
 
@@ -33,28 +35,36 @@ class PermissionRequestMessage extends BeaconMessage {
     return PermissionRequestMessage(
       id: json['id'] as String,
       version: json['version'] as String,
-      sender: BeaconPeer.fromJson(json['sender'] as Map<String, dynamic>),
+      senderId: json['senderId'] as String,
+      origin: Connection.fromJson(json['origin'] as Map<String, dynamic>),
       destination:
-          BeaconPeer.fromJson(json['destination'] as Map<String, dynamic>),
+          Connection.fromJson(json['destination'] as Map<String, dynamic>),
       appMetadata:
           AppMetadata.fromJson(json['appMetadata'] as Map<String, dynamic>),
       network: Network.fromJson(json['network'] as Map<String, dynamic>),
-      scopes:
-          (json['scopes'] as List<dynamic>).map((e) => e as String).toList(),
+      scopes: json['scopes'] != null
+          ? (json['scopes'] as List<dynamic>).map((e) => e as String).toList()
+          : null,
     );
   }
 
   @override
   Map<String, dynamic> toJson() {
-    return {
+    final Map<String, dynamic> json = {
       'id': id,
-      'type': type,
+      'type': type.value,
       'version': version,
-      'sender': sender.toJson(),
+      'senderId': senderId,
+      'origin': origin.toJson(),
       'destination': destination.toJson(),
       'appMetadata': appMetadata.toJson(),
       'network': network.toJson(),
-      'scopes': scopes,
     };
+
+    if (scopes != null) {
+      json['scopes'] = scopes;
+    }
+
+    return json;
   }
 }
