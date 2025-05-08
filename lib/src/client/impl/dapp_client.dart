@@ -47,22 +47,17 @@ class DAppClient extends BeaconConsumer {
       _transport.connect().then((_) {
         _isConnected = true;
 
-        // Subscribe to messages
-        _transport.messageStream.listen((connectionMessage) {
-          // Convert ConnectionMessage to BeaconMessage
-          _handleConnectionMessage(connectionMessage).then((beaconMessage) {
-            if (beaconMessage != null) {
-              // Check if there's a completer waiting for this response
-              final completer = _responseCompleters[beaconMessage.id];
-              if (completer != null && !completer.isCompleted) {
-                completer.complete(beaconMessage);
-                _responseCompleters.remove(beaconMessage.id);
-              } else {
-                // Forward the message to the stream
-                controller.add(beaconMessage);
-              }
-            }
-          });
+        // Subscribe to messages - they are already BeaconMessage objects
+        _transport.messageStream.listen((beaconMessage) {
+          // Check if there's a completer waiting for this response
+          final completer = _responseCompleters[beaconMessage.id];
+          if (completer != null && !completer.isCompleted) {
+            completer.complete(beaconMessage);
+            _responseCompleters.remove(beaconMessage.id);
+          } else {
+            // Forward the message to the stream
+            controller.add(beaconMessage);
+          }
         });
       }).catchError((e) {
         controller.addError(BeaconError(

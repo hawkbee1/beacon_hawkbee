@@ -49,14 +49,15 @@ class WalletClient extends BeaconProducer {
       _transport.connect().then((_) {
         _isConnected = true;
 
-        // Subscribe to messages
-        _transport.messageStream.listen((connectionMessage) {
-          _handleConnectionMessage(connectionMessage).then((beaconMessage) {
-            if (beaconMessage != null) {
-              // Forward the message to the stream
-              controller.add(beaconMessage);
-            }
-          });
+        // Subscribe to messages - they are already BeaconMessage objects
+        _transport.messageStream.listen((beaconMessage) {
+          // Store permission requests for later reference
+          if (beaconMessage is PermissionRequestMessage) {
+            _storeRequest(beaconMessage);
+          }
+
+          // Forward the message to the stream
+          controller.add(beaconMessage);
         });
       }).catchError((e) {
         controller.addError(BeaconError(
