@@ -1,17 +1,16 @@
 import 'package:beacon_hawkbee/beacon_hawkbee.dart';
-import 'package:beacon_hawkbee/src/transport/p2p/matrix/matrix_p2p_client.dart';
 
-/// Provider for Matrix P2P clients.
+/// Provider class for creating Matrix P2P clients.
 class MatrixClientProvider {
-  /// The homeserver URL.
-  final String homeserver;
+  /// The Matrix homeserver URL.
+  final String matrixNode;
 
   /// Creates a new [MatrixClientProvider] instance.
-  const MatrixClientProvider({
-    this.homeserver = MatrixP2PClient.defaultMatrixServer,
+  MatrixClientProvider({
+    this.matrixNode = MatrixP2PClient.defaultMatrixServer,
   });
 
-  /// Creates a new [P2PClient] instance using Matrix.
+  /// Creates a Matrix P2P client for the given app metadata and storage.
   P2PClient createClient({
     required AppMetadata appMetadata,
     required StorageManager storageManager,
@@ -19,7 +18,7 @@ class MatrixClientProvider {
     return MatrixP2PClient(
       appMetadata: appMetadata,
       storageManager: storageManager,
-      homeserver: homeserver,
+      homeserver: matrixNode,
     );
   }
 }

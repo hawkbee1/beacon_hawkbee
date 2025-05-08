@@ -1,30 +1,35 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// A message that is sent over a connection between peers.
+/// Represents a message sent between peers over a P2P connection.
 class ConnectionMessage {
-  /// The id of the peer that sent the message.
+  /// Unique identifier for this message.
+  final String id;
+
+  /// The sender's public key or identifier.
   final String senderId;
 
-  /// The id of the peer that should receive the message.
+  /// The recipient's public key or identifier.
   final String recipientId;
 
-  /// The content of the message.
+  /// The message content (typically encrypted).
   final String content;
 
-  /// The version of the message format.
+  /// The protocol version used.
   final String version;
 
   /// Creates a new [ConnectionMessage] instance.
-  const ConnectionMessage({
+  ConnectionMessage({
+    required this.id,
     required this.senderId,
     required this.recipientId,
     required this.content,
     required this.version,
   });
 
-  /// Creates a new ConnectionMessage instance from a JSON map.
+  /// Creates a [ConnectionMessage] instance from a JSON map.
   factory ConnectionMessage.fromJson(Map<String, dynamic> json) {
     return ConnectionMessage(
+      id: json['id'] as String,
       senderId: json['senderId'] as String,
       recipientId: json['recipientId'] as String,
       content: json['content'] as String,
@@ -32,9 +37,10 @@ class ConnectionMessage {
     );
   }
 
-  /// Converts this ConnectionMessage to a JSON map.
+  /// Converts this message to a JSON map.
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'senderId': senderId,
       'recipientId': recipientId,
       'content': content,

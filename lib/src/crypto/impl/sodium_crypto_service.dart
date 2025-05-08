@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:beacon_hawkbee/beacon_hawkbee.dart';
 import 'package:sodium/sodium.dart';
@@ -7,19 +7,24 @@ import 'package:uuid/uuid.dart';
 
 /// Implementation of [CryptoService] using libsodium.
 class SodiumCryptoService implements CryptoService {
-  static const String _keyPairPublicKey = 'beacon_keypair_pk';
-  static const String _keyPairSecretKey = 'beacon_keypair_sk';
-
+  /// The sodium instance.
   final Sodium _sodium;
+
+  /// UUID generator.
   final Uuid _uuid;
 
+  /// Storage keys for cryptographic material.
+  static const String _publicKeyStorageKey = 'beacon_sodium_public_key';
+  static const String _privateKeyStorageKey = 'beacon_sodium_private_key';
+
   /// Creates a new [SodiumCryptoService] instance.
-  SodiumCryptoService(this._sodium, {Uuid? uuid})
+  SodiumCryptoService(this._sodium, [Uuid? uuid])
       : _uuid = uuid ?? const Uuid();
 
   @override
   Future<KeyPair> generateKeyPair() async {
     final keyPair = _sodium.crypto.box.keyPair();
+
     return KeyPair(
       publicKey: keyPair.publicKey,
       privateKey: keyPair.secretKey,
@@ -28,22 +33,20 @@ class SodiumCryptoService implements CryptoService {
 
   @override
   Future<Uint8List> encrypt(Uint8List message, Uint8List publicKey) async {
-    final nonce = _sodium.randombytes.buf(_sodium.crypto.box.nonceBytes);
+    final nonce = _generateNonce();
     final keyPair = await generateKeyPair();
 
-    final encrypted = _sodium.crypto.box.easy(
+    final encryptedMessage = _sodium.crypto.box.easy(
       message: message,
       nonce: nonce,
       publicKey: publicKey,
       secretKey: keyPair.privateKey,
     );
 
-    // Format: [sender's public key (32 bytes)][nonce (24 bytes)][encrypted message]
-    final result =
-        Uint8List(keyPair.publicKey.length + nonce.length + encrypted.length);
-    result.setAll(0, keyPair.publicKey);
-    result.setAll(keyPair.publicKey.length, nonce);
-    result.setAll(keyPair.publicKey.length + nonce.length, encrypted);
+    // Combine nonce and encrypted message (first 24 bytes are the nonce)
+    final result = Uint8List(nonce.length + encryptedMessage.length);
+    result.setAll(0, nonce);
+    result.setAll(nonce.length, encryptedMessage);
 
     return result;
   }
@@ -51,23 +54,16 @@ class SodiumCryptoService implements CryptoService {
   @override
   Future<Uint8List> decrypt(
       Uint8List encryptedMessage, Uint8List privateKey) async {
-    // Extract sender's public key, nonce, and cipher text
-    final senderPkLength = _sodium.crypto.box.publicKeyBytes;
-    final nonceLength = _sodium.crypto.box.nonceBytes;
+    // Extract nonce (first 24 bytes)
+    final nonce = encryptedMessage.sublist(0, _sodium.crypto.box.nonceBytes);
+    final ciphertext = encryptedMessage.sublist(_sodium.crypto.box.nonceBytes);
 
-    if (encryptedMessage.length <= senderPkLength + nonceLength) {
-      throw ArgumentError('Invalid encrypted message format');
-    }
-
-    final senderPk = encryptedMessage.sublist(0, senderPkLength);
-    final nonce =
-        encryptedMessage.sublist(senderPkLength, senderPkLength + nonceLength);
-    final cipherText = encryptedMessage.sublist(senderPkLength + nonceLength);
+    final publicKey = _sodium.crypto.box.extractPublicKey(privateKey);
 
     return _sodium.crypto.box.openEasy(
-      cipherText: cipherText,
+      cipherText: ciphertext,
       nonce: nonce,
-      publicKey: senderPk,
+      publicKey: publicKey,
       secretKey: privateKey,
     );
   }
@@ -82,11 +78,12 @@ class SodiumCryptoService implements CryptoService {
   Future<bool> verify(
       Uint8List message, Uint8List signature, Uint8List publicKey) async {
     try {
-      return _sodium.crypto.sign.verifyDetached(
+      _sodium.crypto.sign.verifyDetached(
         signature: signature,
         message: message,
         publicKey: publicKey,
       );
+      return true;
     } catch (e) {
       return false;
     }
@@ -94,7 +91,10 @@ class SodiumCryptoService implements CryptoService {
 
   @override
   Future<Uint8List> hash(Uint8List message) async {
-    return _sodium.crypto.genericHash.hash(message);
+    return _sodium.crypto.genericHash.hash(
+      message: message,
+      outLen: 32, // 32 bytes (256 bits) hash
+    );
   }
 
   @override
@@ -104,23 +104,51 @@ class SodiumCryptoService implements CryptoService {
 
   @override
   Future<KeyPair> loadOrGenerateKeyPair(SecureStorage secureStorage) async {
-    final publicKeyHex = await secureStorage.getSecure(_keyPairPublicKey);
-    final privateKeyHex = await secureStorage.getSecure(_keyPairSecretKey);
+    final storedPublicKey = await secureStorage.getSecure(_publicKeyStorageKey);
+    final storedPrivateKey =
+        await secureStorage.getSecure(_privateKeyStorageKey);
 
-    if (publicKeyHex != null && privateKeyHex != null) {
-      return KeyPair.fromHex(
-        publicKeyHex: publicKeyHex,
-        privateKeyHex: privateKeyHex,
-      );
-    } else {
-      // Generate new key pair
-      final keyPair = await generateKeyPair();
+    if (storedPublicKey != null && storedPrivateKey != null) {
+      // Convert stored hex strings to bytes
+      final publicKey = _hexToBytes(storedPublicKey);
+      final privateKey = _hexToBytes(storedPrivateKey);
 
-      // Store in secure storage
-      await secureStorage.saveSecure(_keyPairPublicKey, keyPair.publicKeyHex);
-      await secureStorage.saveSecure(_keyPairSecretKey, keyPair.privateKeyHex);
-
-      return keyPair;
+      return KeyPair(publicKey: publicKey, privateKey: privateKey);
     }
+
+    // Generate a new key pair if none exists
+    final newKeyPair = await generateKeyPair();
+
+    // Store the new key pair
+    await secureStorage.saveSecure(
+        _publicKeyStorageKey, _bytesToHex(newKeyPair.publicKey));
+    await secureStorage.saveSecure(
+        _privateKeyStorageKey, _bytesToHex(newKeyPair.privateKey));
+
+    return newKeyPair;
+  }
+
+  // Helper methods
+
+  Uint8List _generateNonce() {
+    return _sodium.randombytes.buf(_sodium.crypto.box.nonceBytes);
+  }
+
+  String _bytesToHex(Uint8List bytes) {
+    return bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join('');
+  }
+
+  Uint8List _hexToBytes(String hex) {
+    String normalizedHex = hex.startsWith('0x') ? hex.substring(2) : hex;
+    if (normalizedHex.length % 2 != 0) {
+      normalizedHex = '0' + normalizedHex;
+    }
+
+    final result = Uint8List(normalizedHex.length ~/ 2);
+    for (var i = 0; i < result.length; i++) {
+      final hexByte = normalizedHex.substring(i * 2, i * 2 + 2);
+      result[i] = int.parse(hexByte, radix: 16);
+    }
+    return result;
   }
 }

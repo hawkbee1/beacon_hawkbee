@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:beacon_hawkbee/src/transport/data/connection_message.dart';
+
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
 /// Interface for P2P client implementations.
@@ -5,21 +8,21 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 /// This interface provides methods for connecting to and communicating with other
 /// peers over a peer-to-peer network.
 abstract class P2PClient {
-  /// Returns a stream of messages from the P2P network.
-  Stream<ConnectionMessage> messages();
+  /// Whether the client is connected to the P2P network.
+  bool get isConnected;
 
-  /// Starts the P2P client.
-  Future<void> start();
+  /// Stream of incoming messages.
+  Stream<ConnectionMessage> get messageStream;
 
-  /// Stops the P2P client.
-  Future<void> stop();
+  /// Initializes the P2P client.
+  Future<void> init();
 
-  /// Sends a message to a specific recipient.
+  /// Connects to the P2P network.
+  Future<void> connect();
+
+  /// Disconnects from the P2P network.
+  Future<void> disconnect();
+
+  /// Sends a message to another peer.
   Future<void> sendMessage(ConnectionMessage message);
-
-  /// Pairs with another peer on the network.
-  Future<String> createPairingRequest();
-
-  /// Gets the public key of this client.
-  String get publicKey;
 }

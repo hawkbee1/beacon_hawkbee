@@ -1,33 +1,48 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// Abstract interface for all transport implementations.
-///
-/// The transport layer is responsible for sending and receiving messages
-/// between peers in the Beacon network.
-abstract class Transport {
-  /// The type of this transport.
-  TransportType get type;
+/// Defines constants for transport types.
+class TransportType {
+  /// Peer-to-peer transport type.
+  static const String p2p = 'p2p';
 
-  /// Starts the transport and returns a stream of incoming messages.
-  Stream<ConnectionMessage> start();
+  /// PostMessage transport type (for web).
+  static const String postMessage = 'post-message';
 
-  /// Sends a message to a peer.
-  ///
-  /// Returns a [Future] that completes when the message is sent.
-  Future<void> send(ConnectionMessage message);
-
-  /// Stops the transport.
-  Future<void> stop();
-
-  /// Returns true if the transport supports the given [peer].
-  bool canConnect(Peer peer);
+  /// Deep link transport type (for mobile).
+  static const String deepLink = 'deep-link';
 }
 
-/// The type of transport.
-enum TransportType {
-  /// Peer-to-peer transport.
-  p2p,
+/// Interface for transport implementations.
+///
+/// A transport is responsible for sending and receiving messages between peers.
+abstract class Transport {
+  /// The type of transport (p2p, post-message, etc.).
+  String get type;
 
-  /// Deep link transport (used for mobile apps).
-  deeplink,
+  /// Whether the transport is currently connected.
+  bool get isConnected;
+
+  /// Stream of incoming messages.
+  Stream<BeaconMessage> get messageStream;
+
+  /// Connects to the transport network.
+  Future<void> connect();
+
+  /// Disconnects from the transport network.
+  Future<void> disconnect();
+
+  /// Sends a message to a peer.
+  Future<void> sendMessage(BeaconMessage message);
+}
+
+/// Error thrown when transport operations fail.
+class TransportError implements Exception {
+  /// The error message.
+  final String message;
+
+  /// Creates a new [TransportError] instance.
+  TransportError(this.message);
+
+  @override
+  String toString() => 'TransportError: $message';
 }

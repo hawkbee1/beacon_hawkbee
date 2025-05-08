@@ -1,53 +1,60 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// A message requesting permission from a wallet.
+/// Represents a request for permissions from a dApp to a wallet.
 class PermissionRequestMessage extends BeaconMessage {
-  /// Application metadata of the dApp requesting permissions.
+  /// The application metadata.
   final AppMetadata appMetadata;
 
-  /// The requested network to connect to.
+  /// The network to request permissions for.
   final Network network;
 
-  /// Optional scopes of permissions being requested.
-  final List<String>? scopes;
+  /// The desired scopes/permissions.
+  final List<String> scopes;
 
   /// Creates a new [PermissionRequestMessage] instance.
-  const PermissionRequestMessage({
-    required super.id,
-    required super.senderId,
-    required super.version,
-    required super.origin,
-    required super.destination,
+  PermissionRequestMessage({
+    required String id,
+    required String version,
+    required BeaconPeer sender,
+    required BeaconPeer destination,
     required this.appMetadata,
     required this.network,
-    this.scopes,
-  }) : super(type: BeaconMessageType.permissionRequest);
+    required this.scopes,
+  }) : super(
+          id: id,
+          type: BeaconMessageType.permissionRequest,
+          version: version,
+          sender: sender,
+          destination: destination,
+        );
 
-  /// Creates a new PermissionRequestMessage instance from a JSON map.
+  /// Creates a [PermissionRequestMessage] instance from a JSON map.
   factory PermissionRequestMessage.fromJson(Map<String, dynamic> json) {
     return PermissionRequestMessage(
       id: json['id'] as String,
-      senderId: json['senderId'] as String,
       version: json['version'] as String,
-      origin: Connection.fromJson(json['origin'] as Map<String, dynamic>),
-      destination: Connection.fromJson(
-        json['destination'] as Map<String, dynamic>,
-      ),
-      appMetadata: AppMetadata.fromJson(
-        json['appMetadata'] as Map<String, dynamic>,
-      ),
+      sender: BeaconPeer.fromJson(json['sender'] as Map<String, dynamic>),
+      destination:
+          BeaconPeer.fromJson(json['destination'] as Map<String, dynamic>),
+      appMetadata:
+          AppMetadata.fromJson(json['appMetadata'] as Map<String, dynamic>),
       network: Network.fromJson(json['network'] as Map<String, dynamic>),
-      scopes: (json['scopes'] as List<dynamic>?)?.cast<String>(),
+      scopes:
+          (json['scopes'] as List<dynamic>).map((e) => e as String).toList(),
     );
   }
 
   @override
   Map<String, dynamic> toJson() {
     return {
-      ...super.toJson(),
+      'id': id,
+      'type': type,
+      'version': version,
+      'sender': sender.toJson(),
+      'destination': destination.toJson(),
       'appMetadata': appMetadata.toJson(),
       'network': network.toJson(),
-      if (scopes != null) 'scopes': scopes,
+      'scopes': scopes,
     };
   }
 }

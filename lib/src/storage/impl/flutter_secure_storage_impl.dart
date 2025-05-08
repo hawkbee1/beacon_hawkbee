@@ -3,34 +3,25 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Implementation of [SecureStorage] using flutter_secure_storage.
 class FlutterSecureStorageImpl implements SecureStorage {
-  static const String _keyPrefix = 'beacon_secure_';
-
-  final FlutterSecureStorage _storage;
+  /// The flutter_secure_storage instance.
+  final FlutterSecureStorage _secureStorage;
 
   /// Creates a new [FlutterSecureStorageImpl] instance.
-  FlutterSecureStorageImpl([FlutterSecureStorage? storage])
-      : _storage = storage ?? const FlutterSecureStorage();
-
-  @override
-  Future<void> saveSecure(String key, String value) async {
-    await _storage.write(key: _getPrefixedKey(key), value: value);
-  }
+  FlutterSecureStorageImpl([FlutterSecureStorage? secureStorage])
+      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   @override
   Future<String?> getSecure(String key) async {
-    return await _storage.read(key: _getPrefixedKey(key));
+    return await _secureStorage.read(key: key);
   }
 
   @override
-  Future<void> deleteSecure(String key) async {
-    await _storage.delete(key: _getPrefixedKey(key));
+  Future<void> saveSecure(String key, String value) async {
+    await _secureStorage.write(key: key, value: value);
   }
 
   @override
-  Future<bool> hasSecure(String key) async {
-    return (await _storage.containsKey(key: _getPrefixedKey(key)));
+  Future<void> removeSecure(String key) async {
+    await _secureStorage.delete(key: key);
   }
-
-  /// Adds a prefix to the key to avoid collisions with other apps.
-  String _getPrefixedKey(String key) => '$_keyPrefix$key';
 }

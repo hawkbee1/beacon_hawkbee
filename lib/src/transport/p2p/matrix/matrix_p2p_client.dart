@@ -1,223 +1,273 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:beacon_hawkbee/beacon_hawkbee.dart';
 import 'package:matrix/matrix.dart';
-import 'package:uuid/uuid.dart';
 
-/// Implementation of [P2PClient] using Matrix protocol for peer-to-peer communication.
+/// Implementation of [P2PClient] using the Matrix protocol.
 class MatrixP2PClient implements P2PClient {
-  /// Default Matrix server used for communication.
-  static const String defaultMatrixServer = 'matrix.org';
+  /// Default Matrix server used for Beacon communication.
+  static const String defaultMatrixServer = 'https://matrix.tez.ie';
+
+  /// The app metadata.
+  final AppMetadata appMetadata;
+
+  /// The storage manager.
+  final StorageManager storageManager;
+
+  /// The Matrix homeserver URL.
+  final String homeserver;
 
   /// The Matrix client instance.
-  final Client _client;
+  late Client _matrixClient;
 
-  /// Controller for the message stream.
+  /// Stream controller for received messages.
   final StreamController<ConnectionMessage> _messageController =
-      StreamController.broadcast();
+      StreamController<ConnectionMessage>.broadcast();
 
-  /// The app metadata for this client.
-  final AppMetadata _appMetadata;
+  /// Whether the client is initialized.
+  bool _isInitialized = false;
 
-  /// UUID generator.
-  final Uuid _uuid;
+  /// Whether the client is connected.
+  bool _isConnected = false;
 
-  /// The storage for peer relationships.
-  final StorageManager _storageManager;
-
-  /// The user ID on Matrix.
+  /// User ID in the Matrix server.
   String? _userId;
-
-  /// The room ID for peer-to-peer communication.
-  final Map<String, String> _peerRooms = {};
-
-  /// Whether the client has been started.
-  bool _isStarted = false;
-
-  /// The public key of this client.
-  @override
-  String get publicKey => _appMetadata.senderId;
 
   /// Creates a new [MatrixP2PClient] instance.
   MatrixP2PClient({
-    required AppMetadata appMetadata,
-    required StorageManager storageManager,
-    Client? client,
-    Uuid? uuid,
-    String? homeserver,
-  })  : _appMetadata = appMetadata,
-        _storageManager = storageManager,
-        _client = client ??
-            Client(
-              '$homeserver',
-              databaseBuilder: (_) async => null,
-            ),
-        _uuid = uuid ?? Uuid();
-
-  @override
-  Stream<ConnectionMessage> messages() {
-    return _messageController.stream;
+    required this.appMetadata,
+    required this.storageManager,
+    required this.homeserver,
+  }) {
+    _matrixClient = Client(
+      'BeaconSDK',
+      databaseBuilder: (_) async => MatrixInMemoryStore(),
+    );
   }
 
   @override
-  Future<void> start() async {
-    if (_isStarted) return;
+  bool get isConnected => _isConnected;
 
-    await _initializeMatrixClient();
-    await _syncPeers();
+  @override
+  Future<void> init() async {
+    if (_isInitialized) return;
 
-    _client.onRoomEvent.listen(_handleRoomEvent);
-    _isStarted = true;
+    try {
+      // Try to load existing credentials
+      final storedUserId = await storageManager.getValue('matrix_user_id');
+      final storedAccessToken =
+          await storageManager.getValue('matrix_access_token');
+      final storedDeviceId = await storageManager.getValue('matrix_device_id');
+
+      if (storedUserId != null &&
+          storedAccessToken != null &&
+          storedDeviceId != null) {
+        // Use existing credentials
+        await _matrixClient.init(
+          newToken: storedAccessToken,
+          newUserID: storedUserId,
+          newHomeserver: Uri.parse(homeserver),
+          newDeviceID: storedDeviceId,
+        );
+        _userId = storedUserId;
+      } else {
+        // Create new account
+        final username = 'beacon_${_randomString(8)}';
+        final password = _randomString(24);
+
+        await _matrixClient.checkHomeserver(Uri.parse(homeserver));
+
+        try {
+          // Try to register a new user
+          await _matrixClient.register(
+            username: username,
+            password: password,
+            initialDeviceDisplayName: 'Beacon SDK',
+          );
+        } catch (e) {
+          // If registration fails, try login
+          await _matrixClient.login(
+            LoginType.mLoginPassword,
+            identifier: AuthenticationUserIdentifier(user: username),
+            password: password,
+            initialDeviceDisplayName: 'Beacon SDK',
+          );
+        }
+
+        // Store credentials
+        await storageManager.setValue('matrix_user_id', _matrixClient.userID!);
+        await storageManager.setValue(
+            'matrix_access_token', _matrixClient.accessToken!);
+        await storageManager.setValue(
+            'matrix_device_id', _matrixClient.deviceID!);
+
+        _userId = _matrixClient.userID;
+      }
+
+      // Set up message handler
+      _matrixClient.onEvent.stream.listen(_handleEvent);
+
+      _isInitialized = true;
+    } catch (e) {
+      throw P2PClientError('Failed to initialize Matrix client: $e');
+    }
   }
 
   @override
-  Future<void> stop() async {
-    await _client.dispose();
-    _isStarted = false;
+  Future<void> connect() async {
+    if (_isConnected) return;
+
+    if (!_isInitialized) {
+      await init();
+    }
+
+    try {
+      // Start syncing
+      await _matrixClient.startSync();
+
+      // Join rooms for all known peers
+      final peers = await storageManager.getPeers();
+      for (final peer in peers) {
+        await _joinOrCreateRoomForPeer(peer.publicKey);
+      }
+
+      _isConnected = true;
+    } catch (e) {
+      throw P2PClientError('Failed to connect Matrix client: $e');
+    }
+  }
+
+  @override
+  Future<void> disconnect() async {
+    if (!_isConnected) return;
+
+    try {
+      await _matrixClient.logout();
+      _isConnected = false;
+    } catch (e) {
+      throw P2PClientError('Failed to disconnect Matrix client: $e');
+    }
   }
 
   @override
   Future<void> sendMessage(ConnectionMessage message) async {
-    final roomId = await _getRoomForPeer(message.recipientId);
-    if (roomId == null) {
-      throw Exception('No room found for peer ${message.recipientId}');
+    if (!_isConnected) {
+      throw P2PClientError('Cannot send message: client is not connected');
     }
 
-    await _client.getRoomById(roomId)?.sendTextEvent(
-          jsonEncode(message.toJson()),
-          msgtype: MessageTypes.Text,
-        );
+    try {
+      // Find or create room for the recipient
+      final roomId = await _joinOrCreateRoomForPeer(message.recipientId);
+
+      // Send the message
+      await _matrixClient.sendTextEvent(
+        roomId,
+        message.content,
+        txid: message.id,
+      );
+    } catch (e) {
+      throw P2PClientError('Failed to send message: $e');
+    }
   }
 
   @override
-  Future<String> createPairingRequest() async {
-    final pairingId = _uuid.v4();
+  Stream<ConnectionMessage> get messageStream => _messageController.stream;
 
-    final pairingMessage = PairingMessage(
-      id: pairingId,
-      type: PairingMessageType.pairingRequest,
-      name: _appMetadata.name,
-      version: '3', // We're implementing protocol version 3
-      publicKey: publicKey,
-      appUrl: null,
-      icon: _appMetadata.icon,
-    );
+  /// Returns a deterministic room ID for a peer.
+  Future<String> _joinOrCreateRoomForPeer(String peerId) async {
+    // Create deterministic room name
+    final roomName = [_userId, peerId]..sort();
+    final roomAlias = 'beacon_${roomName.join('_')}';
 
-    return jsonEncode(pairingMessage.toJson());
-  }
-
-  /// Handles a pairing response from another peer.
-  Future<void> handlePairingResponse(String pairingResponse) async {
     try {
-      final data = jsonDecode(pairingResponse) as Map<String, dynamic>;
-      final pairingMessage = PairingMessage.fromJson(data);
-
-      if (pairingMessage.type == PairingMessageType.pairingResponse) {
-        // Create a peer from the pairing message
-        final peer = pairingMessage.toPeer();
-
-        // Add peer to storage
-        await _storageManager.addPeers([peer]);
-
-        // Create a room with the peer
-        await _createRoomWithPeer(peer);
-      }
-    } catch (e) {
-      throw Exception('Failed to handle pairing response: $e');
-    }
-  }
-
-  // Private helper methods
-
-  Future<void> _initializeMatrixClient() async {
-    try {
-      // Check if we already have login credentials
-      final accessToken = await _storageManager.getValue('beacon_matrix_token');
-      final userId = await _storageManager.getValue('beacon_matrix_user_id');
-
-      if (accessToken != null && userId != null) {
-        // Use saved credentials
-        await _client.loginWithToken(accessToken);
-        _userId = userId;
-      } else {
-        // Generate a random username and password
-        final username =
-            'beacon_${_uuid.v4().replaceAll('-', '').substring(0, 8)}';
-        final password = _uuid.v4();
-
-        // Create a new account
-        await _client.register(username: username, password: password);
-        _userId = _client.userID;
-
-        // Store credentials
-        await _storageManager.setValue(
-            'beacon_matrix_token', _client.accessToken!);
-        await _storageManager.setValue('beacon_matrix_user_id', _userId!);
-      }
-
-      // Start syncing
-      await _client.startSync();
-    } catch (e) {
-      throw Exception('Failed to initialize Matrix client: $e');
-    }
-  }
-
-  Future<void> _syncPeers() async {
-    final peers = await _storageManager.getPeers();
-    for (final peer in peers) {
-      await _createRoomWithPeer(peer);
-    }
-  }
-
-  Future<void> _createRoomWithPeer(Peer peer) async {
-    try {
-      final existingRoomId = await _getRoomForPeer(peer.publicKey);
-      if (existingRoomId != null) {
-        return; // Room already exists
-      }
-
-      // Create a direct message room with the peer
-      final roomId = await _client.createRoom(
-        isDirect: true,
-        preset: CreateRoomPreset.trustedPrivateChat,
-        name: 'Beacon: ${peer.name}',
+      // Try to find existing room
+      final rooms = await _matrixClient.getPublicRooms();
+      final existingRoom = rooms.chunk.firstWhere(
+        (room) => room.name == roomAlias,
+        orElse: () => PublicRoomsChunk(roomId: ''),
       );
 
-      // Store the room ID for this peer
-      _peerRooms[peer.publicKey] = roomId.roomId;
-      await _storageManager.setValue(
-          'beacon_room_${peer.publicKey}', roomId.roomId);
+      if (existingRoom.roomId.isNotEmpty) {
+        // Join existing room
+        final joinedRoom = await _matrixClient.joinRoom(existingRoom.roomId);
+        return joinedRoom.id;
+      }
+
+      // Create new room
+      final createdRoom = await _matrixClient.createRoom(
+        name: roomAlias,
+        preset: CreateRoomPreset.publicChat,
+        visibility: Visibility.public,
+        topic: 'Beacon SDK communication channel',
+      );
+
+      return createdRoom.id;
     } catch (e) {
-      throw Exception('Failed to create room with peer: $e');
-    }
-  }
-
-  Future<String?> _getRoomForPeer(String peerPublicKey) async {
-    // Try to get from memory cache first
-    if (_peerRooms.containsKey(peerPublicKey)) {
-      return _peerRooms[peerPublicKey];
-    }
-
-    // Try to get from storage
-    final roomId = await _storageManager.getValue('beacon_room_$peerPublicKey');
-    if (roomId != null) {
-      _peerRooms[peerPublicKey] = roomId;
-    }
-
-    return roomId;
-  }
-
-  void _handleRoomEvent(Event event) {
-    if (event.type == EventTypes.Message &&
-        event.messageType == MessageTypes.Text) {
+      // Fallback to direct creation
       try {
-        final data = jsonDecode(event.text ?? '{}') as Map<String, dynamic>;
-        final message = ConnectionMessage.fromJson(data);
-        _messageController.add(message);
+        final createdRoom = await _matrixClient.createRoom(
+          name: roomAlias,
+          preset: CreateRoomPreset.publicChat,
+          visibility: Visibility.public,
+          topic: 'Beacon SDK communication channel',
+        );
+
+        return createdRoom.id;
       } catch (e) {
-        // Ignore messages that aren't valid Beacon messages
+        throw P2PClientError('Failed to create or join room: $e');
       }
     }
   }
+
+  /// Handles incoming Matrix events.
+  void _handleEvent(EventUpdate event) {
+    if (event.type == EventUpdateType.timeline &&
+        event.content['type'] == 'm.room.message' &&
+        event.content['content']['msgtype'] == 'm.text') {
+      final senderId = event.content['sender'];
+      final content = event.content['content']['body'];
+
+      // Filter out own messages
+      if (senderId != _userId) {
+        try {
+          // Parse the message content
+          final message = ConnectionMessage(
+            id: event.content['event_id'] ?? _randomString(10),
+            senderId: senderId,
+            recipientId: _userId ?? '',
+            content: content,
+            version: '3', // Default to protocol version 3
+          );
+
+          _messageController.add(message);
+        } catch (e) {
+          // Ignore invalid messages
+        }
+      }
+    }
+  }
+
+  /// Generates a random string of the specified length.
+  String _randomString(int length) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random.secure();
+    return String.fromCharCodes(
+      List.generate(
+          length, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+    );
+  }
+}
+
+/// Error thrown when P2P client operations fail.
+class P2PClientError implements Exception {
+  /// The error message.
+  final String message;
+
+  /// Creates a new [P2PClientError] instance.
+  P2PClientError(this.message);
+
+  @override
+  String toString() => 'P2PClientError: $message';
 }
