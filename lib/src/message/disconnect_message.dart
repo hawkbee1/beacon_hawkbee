@@ -1,18 +1,20 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// Represents a disconnect message sent between peers.
+/// Represents a disconnect message.
 class DisconnectMessage extends BeaconMessage {
   /// Creates a new [DisconnectMessage] instance.
   DisconnectMessage({
     required String id,
+    required String senderId,
     required String version,
-    required BeaconPeer sender,
-    required BeaconPeer destination,
+    required Connection origin,
+    required Connection destination,
   }) : super(
           id: id,
           type: BeaconMessageType.disconnect,
           version: version,
-          sender: sender,
+          senderId: senderId,
+          origin: origin,
           destination: destination,
         );
 
@@ -21,9 +23,10 @@ class DisconnectMessage extends BeaconMessage {
     return DisconnectMessage(
       id: json['id'] as String,
       version: json['version'] as String,
-      sender: BeaconPeer.fromJson(json['sender'] as Map<String, dynamic>),
+      senderId: json['senderId'] as String,
+      origin: Connection.fromJson(json['origin'] as Map<String, dynamic>),
       destination:
-          BeaconPeer.fromJson(json['destination'] as Map<String, dynamic>),
+          Connection.fromJson(json['destination'] as Map<String, dynamic>),
     );
   }
 
@@ -31,9 +34,10 @@ class DisconnectMessage extends BeaconMessage {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'type': type,
+      'type': type.value,
       'version': version,
-      'sender': sender.toJson(),
+      'senderId': senderId,
+      'origin': origin.toJson(),
       'destination': destination.toJson(),
     };
   }
