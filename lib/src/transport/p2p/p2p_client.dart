@@ -16,4 +16,10 @@ abstract class P2PClient {
 
   /// Connects to the P2P network.
   Future<void> connect();
+
+  /// Disconnects from the P2P network.
+  Future<void> disconnect();
+
+  /// Sends a message to another peer.
+  Future<void> sendMessage(ConnectionMessage message);
 }

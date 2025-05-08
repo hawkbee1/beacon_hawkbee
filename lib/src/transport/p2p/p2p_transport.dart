@@ -199,6 +199,21 @@ class P2PTransport implements Transport {
     }
     return result;
   }
+
+  /// Creates a QR code pairing request that can be scanned by a wallet.
+  Future<String> createPairingRequest() async {
+    // Generate QR code content for pairing
+    final pairingRequest = PairingMessage(
+      id: await _cryptoService.guid(),
+      type: PairingMessageType.pairingRequest,
+      name: 'Beacon SDK',
+      version: '3',
+      publicKey: _senderId,
+      relayServer: 'matrix',
+    );
+
+    return jsonEncode(pairingRequest.toJson());
+  }
 }
 
 /// Temporary dummy secure storage for testing.
