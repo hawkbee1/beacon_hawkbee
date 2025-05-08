@@ -4,13 +4,13 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 enum SigningType {
   /// Sign raw bytes.
   raw,
-  
+
   /// Sign a transaction operation.
   operation,
-  
+
   /// Sign a Micheline expression.
   micheline,
-  
+
   /// Sign data based on a specific schema.
   dataSchema,
 }
@@ -30,7 +30,7 @@ extension SigningTypeExtension on SigningType {
         return 'data_schema';
     }
   }
-  
+
   /// Creates a SigningType from a string
   static SigningType fromString(String value) {
     switch (value) {

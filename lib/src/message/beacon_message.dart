@@ -4,31 +4,31 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 enum BeaconMessageType {
   /// Permission request for access to account
   permissionRequest,
-  
+
   /// Response to permission request
   permissionResponse,
-  
+
   /// Request to sign message/operation
   signRequest,
-  
+
   /// Response to sign request
   signResponse,
-  
+
   /// Request to broadcast operation
   broadcastRequest,
-  
+
   /// Response to broadcast request
   broadcastResponse,
-  
+
   /// Request for operation
   operationRequest,
-  
+
   /// Response to operation request
   operationResponse,
-  
+
   /// Disconnect message
   disconnect,
-  
+
   /// Error message
   error,
 }
@@ -60,7 +60,7 @@ extension BeaconMessageTypeExtension on BeaconMessageType {
         return 'error';
     }
   }
-  
+
   /// Create BeaconMessageType from string
   static BeaconMessageType fromString(String value) {
     switch (value) {
@@ -143,16 +143,16 @@ class BeaconPeer {
 abstract class BeaconMessage {
   /// The unique ID of the message.
   final String id;
-  
+
   /// The type of the message.
   final BeaconMessageType type;
-  
+
   /// The version of the protocol.
   final String version;
-  
+
   /// The sender identifier.
   final String senderId;
-  
+
   /// Creates a new [BeaconMessage] instance.
   BeaconMessage({
     required this.id,
@@ -160,11 +160,11 @@ abstract class BeaconMessage {
     required this.version,
     required this.senderId,
   });
-  
+
   /// Factory constructor to create a message from JSON.
   factory BeaconMessage.fromJson(Map<String, dynamic> json) {
     final type = BeaconMessageTypeExtension.fromString(json['type'] as String);
-    
+
     switch (type) {
       case BeaconMessageType.permissionRequest:
         return PermissionRequestMessage.fromJson(json);
@@ -174,10 +174,11 @@ abstract class BeaconMessage {
         return DisconnectMessage.fromJson(json);
       // TODO: Implement other message types
       default:
-        throw UnimplementedError('Message type ${type.value} is not implemented yet');
+        throw UnimplementedError(
+            'Message type ${type.value} is not implemented yet');
     }
   }
-  
+
   /// Convert the message to a JSON map.
   Map<String, dynamic> toJson();
 }

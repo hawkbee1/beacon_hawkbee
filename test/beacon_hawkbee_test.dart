@@ -3,14 +3,21 @@ import 'package:test/test.dart';
 
 void main() {
   group('A group of tests', () {
-    final awesome = Awesome();
+    late Beacon beacon;
 
-    setUp(() {
-      // Additional setup goes here.
+    setUp(() async {
+      // Initialize Beacon SDK with test app metadata
+      beacon = await Beacon.init(
+        appMetadata: AppMetadata(
+          name: 'Test App',
+          iconUrl: '',
+          url: 'https://test.app',
+        ),
+      );
     });
 
     test('First Test', () {
-      expect(awesome.isAwesome, isTrue);
+      expect(beacon.appMetadata.name, equals('Test App'));
     });
   });
 }

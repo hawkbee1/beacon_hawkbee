@@ -34,9 +34,9 @@ class SodiumCryptoService implements beacon.CryptoService {
   Future<Uint8List> encrypt(Uint8List message, Uint8List publicKey) async {
     final nonce = _generateNonce();
     final keyPair = await generateKeyPair();
-    
+
     final secretKey = _sodium.secureCopy(keyPair.privateKey);
-    
+
     final encryptedMessage = _sodium.crypto.box.easy(
       message: message,
       nonce: nonce,
@@ -61,7 +61,7 @@ class SodiumCryptoService implements beacon.CryptoService {
 
     // Create SecureKey from private key bytes
     final secretKey = _sodium.secureCopy(privateKey);
-    
+
     // We need to get the corresponding public key for this private key
     // Since box.publicKey isn't available, we'll use the correct approach
     final keyPair = await generateKeyPair();
@@ -79,9 +79,9 @@ class SodiumCryptoService implements beacon.CryptoService {
   Future<Uint8List> sign(Uint8List message, Uint8List privateKey) async {
     // Create SecureKey from private key bytes
     final secretKey = _sodium.secureCopy(privateKey);
-    
+
     return _sodium.crypto.sign.detached(
-      message: message, 
+      message: message,
       secretKey: secretKey,
     );
   }
@@ -116,7 +116,8 @@ class SodiumCryptoService implements beacon.CryptoService {
   }
 
   @override
-  Future<beacon.KeyPair> loadOrGenerateKeyPair(beacon.SecureStorage secureStorage) async {
+  Future<beacon.KeyPair> loadOrGenerateKeyPair(
+      beacon.SecureStorage secureStorage) async {
     final storedPublicKey = await secureStorage.getSecure(_publicKeyStorageKey);
     final storedPrivateKey =
         await secureStorage.getSecure(_privateKeyStorageKey);

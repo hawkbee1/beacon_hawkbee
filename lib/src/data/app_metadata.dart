@@ -4,19 +4,19 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 class AppMetadata {
   /// The name of the application.
   final String name;
-  
+
   /// The URL of the application's website.
   final String url;
-  
+
   /// The URL of the application's icon.
   final String? iconUrl;
-  
+
   /// The application's identifier.
   final String? appId;
-  
+
   /// The sender identifier used for permissions
   String get senderId => appId ?? name;
-  
+
   /// Creates a new [AppMetadata] instance.
   AppMetadata({
     required this.name,
@@ -24,7 +24,7 @@ class AppMetadata {
     this.iconUrl,
     this.appId,
   });
-  
+
   /// Creates an [AppMetadata] instance from a JSON map.
   factory AppMetadata.fromJson(Map<String, dynamic> json) {
     return AppMetadata(
@@ -34,7 +34,7 @@ class AppMetadata {
       appId: json['appId'] as String?,
     );
   }
-  
+
   /// Converts this app metadata to a JSON map.
   Map<String, dynamic> toJson() {
     return {

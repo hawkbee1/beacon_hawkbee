@@ -4,20 +4,20 @@ part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 class Network {
   /// The type of blockchain (e.g., "tezos").
   final String type;
-  
+
   /// The network's name (e.g., "mainnet", "ghostnet").
   final String name;
-  
+
   /// The RPC URL for this network.
   final String rpcUrl;
-  
+
   /// Creates a new [Network] instance.
   Network({
     required this.type,
     required this.name,
     required this.rpcUrl,
   });
-  
+
   /// Creates a [Network] instance from a JSON map.
   factory Network.fromJson(Map<String, dynamic> json) {
     return Network(
@@ -26,7 +26,7 @@ class Network {
       rpcUrl: json['rpcUrl'] as String,
     );
   }
-  
+
   /// Converts this network to a JSON map.
   Map<String, dynamic> toJson() {
     return {
@@ -35,7 +35,7 @@ class Network {
       'rpcUrl': rpcUrl,
     };
   }
-  
+
   /// Returns a predefined mainnet network for Tezos.
   static Network tezosMainnet() {
     return Network(
@@ -44,7 +44,7 @@ class Network {
       rpcUrl: 'https://mainnet.api.tez.ie',
     );
   }
-  
+
   /// Returns a predefined testnet network for Tezos (Ghostnet).
   static Network tezosGhostnet() {
     return Network(
