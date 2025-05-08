@@ -40,7 +40,10 @@ class ClientFactory {
       storageManager: storage,
       homeserver: matrixNode ?? MatrixP2PClient.defaultMatrixServer,
     );
+    // Initialize the P2P client
     await p2pClient.init();
+
+    // Create the transport with all required parameters
     final transport = P2PTransport(
       p2pClient: p2pClient,
       cryptoService: cryptoService,
@@ -83,7 +86,10 @@ class ClientFactory {
       storageManager: storage,
       homeserver: matrixNode ?? MatrixP2PClient.defaultMatrixServer,
     );
+    // Initialize the P2P client
     await p2pClient.init();
+
+    // Create the transport with all required parameters
     final transport = P2PTransport(
       p2pClient: p2pClient,
       cryptoService: cryptoService,
