@@ -50,7 +50,7 @@ class TezosOperationSignRequest extends TezosOperationRequest {
     required this.sourceAddress,
     required this.network,
     required this.operationDetails,
-  }) : super(type: BeaconMessageType.permissionRequest);
+  }) : super(type: BeaconMessageType.operationRequest);
 
   /// Creates a new TezosOperationSignRequest instance from a JSON map.
   factory TezosOperationSignRequest.fromJson(Map<String, dynamic> json) {
@@ -100,7 +100,7 @@ class TezosSignPayloadRequest extends TezosOperationRequest {
     required this.sourceAddress,
     required this.payload,
     required this.signingType,
-  }) : super(type: BeaconMessageType.permissionRequest);
+  }) : super(type: BeaconMessageType.signRequest);
 
   /// Creates a new TezosSignPayloadRequest instance from a JSON map.
   factory TezosSignPayloadRequest.fromJson(Map<String, dynamic> json) {
@@ -123,7 +123,7 @@ class TezosSignPayloadRequest extends TezosOperationRequest {
     json.addAll({
       'sourceAddress': sourceAddress,
       'payload': payload,
-      'signingType': signingType.stringValue,
+      'signingType': signingType.value,
     });
     return json;
   }
@@ -146,7 +146,7 @@ class TezosOperationResponse extends BeaconMessage {
     required super.destination,
     required this.requestId,
     required this.transactionHash,
-  }) : super(type: BeaconMessageType.permissionResponse);
+  }) : super(type: BeaconMessageType.operationResponse);
 
   /// Creates a new TezosOperationResponse instance from a JSON map.
   factory TezosOperationResponse.fromJson(Map<String, dynamic> json) {

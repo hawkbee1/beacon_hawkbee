@@ -24,10 +24,10 @@ Future<void> dAppExample() async {
   // Initialize a dApp client
   final dAppClient = await ClientFactory.createDAppClient(
     appMetadata: AppMetadata(
-      blockchainIdentifier: 'tezos',
-      senderId: 'example-dapp',
       name: 'Example Tezos dApp',
-      icon: 'https://tezos.com/favicon.ico',
+      url: 'https://example.com/dapp',
+      iconUrl: 'https://tezos.com/favicon.ico',
+      appId: 'example-dapp',
     ),
   );
 
@@ -134,10 +134,10 @@ Future<void> walletExample() async {
   // Initialize a wallet client
   final walletClient = await ClientFactory.createWalletClient(
     appMetadata: AppMetadata(
-      blockchainIdentifier: 'tezos',
-      senderId: 'example-wallet',
       name: 'Example Tezos Wallet',
-      icon: 'https://tezos.com/wallet-icon.png',
+      url: 'https://example.com/wallet',
+      iconUrl: 'https://tezos.com/wallet-icon.png',
+      appId: 'example-wallet',
     ),
   );
 

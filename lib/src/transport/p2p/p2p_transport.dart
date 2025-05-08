@@ -1,8 +1,4 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
-
-import 'package:beacon_hawkbee/beacon_hawkbee.dart';
+part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
 /// Implementation of [Transport] using P2P communication.
 class P2PTransport implements Transport {

@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'package:beacon_hawkbee/src/transport/data/connection_message.dart';
-
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
 /// Interface for P2P client implementations.
