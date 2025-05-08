@@ -40,7 +40,13 @@ class ClientFactory {
       storageManager: storage,
       homeserver: matrixNode ?? MatrixP2PClient.defaultMatrixServer,
     );
-    final transport = P2PTransport(p2pClient);
+    await p2pClient.init();
+    final transport = P2PTransport(
+      p2pClient: p2pClient,
+      cryptoService: cryptoService,
+      storageManager: storage,
+      senderId: clientId,
+    );
 
     return DAppClient(
       appMetadata: appMetadata,
@@ -77,7 +83,13 @@ class ClientFactory {
       storageManager: storage,
       homeserver: matrixNode ?? MatrixP2PClient.defaultMatrixServer,
     );
-    final transport = P2PTransport(p2pClient);
+    await p2pClient.init();
+    final transport = P2PTransport(
+      p2pClient: p2pClient,
+      cryptoService: cryptoService,
+      storageManager: storage,
+      senderId: clientId,
+    );
 
     return WalletClient(
       appMetadata: appMetadata,
