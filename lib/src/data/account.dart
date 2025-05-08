@@ -1,65 +1,47 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
 /// Represents a blockchain account.
-///
-/// Accounts are identified by their public key and address.
 class Account {
-  /// The blockchain identifier for this account.
-  final String blockchainIdentifier;
-
-  /// The account's public key.
-  final String publicKey;
-
   /// The account's address.
   final String address;
-
-  /// The network on which this account exists.
+  
+  /// The network this account belongs to.
   final Network network;
-
+  
+  /// The public key of this account.
+  final String? publicKey;
+  
+  /// The account's threshold for multi-signature operations.
+  final int? threshold;
+  
+  /// The unique identifier for this account (combination of address and network)
+  String get accountId => '${network.type}:${network.name}:$address';
+  
   /// Creates a new [Account] instance.
-  const Account({
-    required this.blockchainIdentifier,
-    required this.publicKey,
+  Account({
     required this.address,
     required this.network,
+    this.publicKey,
+    this.threshold,
   });
-
-  /// Creates a new Account instance from a JSON map.
+  
+  /// Creates an [Account] instance from a JSON map.
   factory Account.fromJson(Map<String, dynamic> json) {
     return Account(
-      blockchainIdentifier: json['blockchainIdentifier'] as String,
-      publicKey: json['publicKey'] as String,
       address: json['address'] as String,
       network: Network.fromJson(json['network'] as Map<String, dynamic>),
+      publicKey: json['publicKey'] as String?,
+      threshold: json['threshold'] as int?,
     );
   }
-
-  /// Converts this Account to a JSON map.
+  
+  /// Converts this account to a JSON map.
   Map<String, dynamic> toJson() {
     return {
-      'blockchainIdentifier': blockchainIdentifier,
-      'publicKey': publicKey,
       'address': address,
       'network': network.toJson(),
+      if (publicKey != null) 'publicKey': publicKey,
+      if (threshold != null) 'threshold': threshold,
     };
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Account &&
-        other.blockchainIdentifier == blockchainIdentifier &&
-        other.publicKey == publicKey &&
-        other.address == address &&
-        other.network == network;
-  }
-
-  @override
-  int get hashCode {
-    return blockchainIdentifier.hashCode ^
-        publicKey.hashCode ^
-        address.hashCode ^
-        network.hashCode;
   }
 }

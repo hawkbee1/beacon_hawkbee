@@ -1,65 +1,65 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// Base class for granted permission data.
-///
-/// Permissions represent access rights granted by a wallet to a dApp.
+/// Standard permission scopes available in Beacon.
+class BeaconScope {
+  /// Permission to request signature.
+  static const String sign = 'sign';
+  
+  /// Permission to request operations.
+  static const String operation = 'operation';
+  
+  /// Permission to request contract calls.
+  static const String contractCall = 'contract_call';
+  
+  /// Permission to interact with threshold accounts.
+  static const String threshold = 'threshold';
+}
+
+/// Represents permission for a specific blockchain account.
 class Permission {
-  /// The unique name of the blockchain on which the permission is valid.
-  final String blockchainIdentifier;
-
-  /// The value that identifies the account which granted the permissions.
-  final String accountId;
-
-  /// The value that identifies the sender to whom the permissions were granted.
-  final String senderId;
-
-  /// The timestamp at which the permissions were granted.
-  final int connectedAt;
-
+  /// The account for which permission is granted.
+  final Account account;
+  
+  /// The application metadata for which permission is granted.
+  final AppMetadata appMetadata;
+  
+  /// The list of scopes/permissions granted.
+  final List<String> scopes;
+  
+  /// The date when this permission was created.
+  final DateTime createdAt;
+  
+  /// The account identifier (for permission lookup)
+  String get accountId => account.accountId;
+  
+  /// The sender identifier (for permission lookup)
+  String get senderId => appMetadata.senderId;
+  
   /// Creates a new [Permission] instance.
-  const Permission({
-    required this.blockchainIdentifier,
-    required this.accountId,
-    required this.senderId,
-    required this.connectedAt,
-  });
-
-  /// Creates a new Permission instance from a JSON map.
+  Permission({
+    required this.account,
+    required this.appMetadata,
+    required this.scopes,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
+  
+  /// Creates a [Permission] instance from a JSON map.
   factory Permission.fromJson(Map<String, dynamic> json) {
     return Permission(
-      blockchainIdentifier: json['blockchainIdentifier'] as String,
-      accountId: json['accountId'] as String,
-      senderId: json['senderId'] as String,
-      connectedAt: json['connectedAt'] as int,
+      account: Account.fromJson(json['account'] as Map<String, dynamic>),
+      appMetadata: AppMetadata.fromJson(json['appMetadata'] as Map<String, dynamic>),
+      scopes: (json['scopes'] as List<dynamic>).map((e) => e as String).toList(),
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
-
-  /// Converts this Permission to a JSON map.
+  
+  /// Converts this permission to a JSON map.
   Map<String, dynamic> toJson() {
     return {
-      'blockchainIdentifier': blockchainIdentifier,
-      'accountId': accountId,
-      'senderId': senderId,
-      'connectedAt': connectedAt,
+      'account': account.toJson(),
+      'appMetadata': appMetadata.toJson(),
+      'scopes': scopes,
+      'createdAt': createdAt.toIso8601String(),
     };
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Permission &&
-        other.blockchainIdentifier == blockchainIdentifier &&
-        other.accountId == accountId &&
-        other.senderId == senderId &&
-        other.connectedAt == connectedAt;
-  }
-
-  @override
-  int get hashCode {
-    return blockchainIdentifier.hashCode ^
-        accountId.hashCode ^
-        senderId.hashCode ^
-        connectedAt.hashCode;
   }
 }

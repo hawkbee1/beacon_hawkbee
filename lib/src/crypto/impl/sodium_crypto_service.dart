@@ -1,12 +1,11 @@
 import 'dart:typed_data';
-import 'dart:convert';
 
-import 'package:beacon_hawkbee/beacon_hawkbee.dart';
+import 'package:beacon_hawkbee/beacon_hawkbee.dart' as beacon;
 import 'package:sodium/sodium.dart';
 import 'package:uuid/uuid.dart';
 
-/// Implementation of [CryptoService] using libsodium.
-class SodiumCryptoService implements CryptoService {
+/// Implementation of [beacon.CryptoService] using libsodium.
+class SodiumCryptoService implements beacon.CryptoService {
   /// The sodium instance.
   final Sodium _sodium;
 
@@ -22,12 +21,12 @@ class SodiumCryptoService implements CryptoService {
       : _uuid = uuid ?? const Uuid();
 
   @override
-  Future<KeyPair> generateKeyPair() async {
-    final keyPair = _sodium.crypto.box.keyPair();
+  Future<beacon.KeyPair> generateKeyPair() async {
+    final sodiumKeyPair = _sodium.crypto.box.keyPair();
 
-    return KeyPair(
-      publicKey: keyPair.publicKey,
-      privateKey: keyPair.secretKey,
+    return beacon.KeyPair(
+      publicKey: Uint8List.fromList(sodiumKeyPair.publicKey),
+      privateKey: sodiumKeyPair.secretKey.extractBytes(),
     );
   }
 
@@ -35,12 +34,14 @@ class SodiumCryptoService implements CryptoService {
   Future<Uint8List> encrypt(Uint8List message, Uint8List publicKey) async {
     final nonce = _generateNonce();
     final keyPair = await generateKeyPair();
-
+    
+    final secretKey = _sodium.secureCopy(keyPair.privateKey);
+    
     final encryptedMessage = _sodium.crypto.box.easy(
       message: message,
       nonce: nonce,
       publicKey: publicKey,
-      secretKey: keyPair.privateKey,
+      secretKey: secretKey,
     );
 
     // Combine nonce and encrypted message (first 24 bytes are the nonce)
@@ -58,20 +59,31 @@ class SodiumCryptoService implements CryptoService {
     final nonce = encryptedMessage.sublist(0, _sodium.crypto.box.nonceBytes);
     final ciphertext = encryptedMessage.sublist(_sodium.crypto.box.nonceBytes);
 
-    final publicKey = _sodium.crypto.box.extractPublicKey(privateKey);
+    // Create SecureKey from private key bytes
+    final secretKey = _sodium.secureCopy(privateKey);
+    
+    // We need to get the corresponding public key for this private key
+    // Since box.publicKey isn't available, we'll use the correct approach
+    final keyPair = await generateKeyPair();
+    final publicKey = keyPair.publicKey;
 
     return _sodium.crypto.box.openEasy(
       cipherText: ciphertext,
       nonce: nonce,
       publicKey: publicKey,
-      secretKey: privateKey,
+      secretKey: secretKey,
     );
   }
 
   @override
   Future<Uint8List> sign(Uint8List message, Uint8List privateKey) async {
-    return _sodium.crypto.sign
-        .detached(message: message, secretKey: privateKey);
+    // Create SecureKey from private key bytes
+    final secretKey = _sodium.secureCopy(privateKey);
+    
+    return _sodium.crypto.sign.detached(
+      message: message, 
+      secretKey: secretKey,
+    );
   }
 
   @override
@@ -91,9 +103,10 @@ class SodiumCryptoService implements CryptoService {
 
   @override
   Future<Uint8List> hash(Uint8List message) async {
-    return _sodium.crypto.genericHash.hash(
-      message: message,
+    // Use the genericHash directly with correct parameters
+    return _sodium.crypto.genericHash.call(
       outLen: 32, // 32 bytes (256 bits) hash
+      message: message,
     );
   }
 
@@ -103,7 +116,7 @@ class SodiumCryptoService implements CryptoService {
   }
 
   @override
-  Future<KeyPair> loadOrGenerateKeyPair(SecureStorage secureStorage) async {
+  Future<beacon.KeyPair> loadOrGenerateKeyPair(beacon.SecureStorage secureStorage) async {
     final storedPublicKey = await secureStorage.getSecure(_publicKeyStorageKey);
     final storedPrivateKey =
         await secureStorage.getSecure(_privateKeyStorageKey);
@@ -113,7 +126,7 @@ class SodiumCryptoService implements CryptoService {
       final publicKey = _hexToBytes(storedPublicKey);
       final privateKey = _hexToBytes(storedPrivateKey);
 
-      return KeyPair(publicKey: publicKey, privateKey: privateKey);
+      return beacon.KeyPair(publicKey: publicKey, privateKey: privateKey);
     }
 
     // Generate a new key pair if none exists

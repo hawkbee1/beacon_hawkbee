@@ -1,27 +1,93 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// Defines constants for message types.
-class BeaconMessageType {
-  /// Request for permissions.
-  static const String permissionRequest = 'permission_request';
+/// Message types supported by Beacon protocol.
+enum BeaconMessageType {
+  /// Permission request for access to account
+  permissionRequest,
+  
+  /// Response to permission request
+  permissionResponse,
+  
+  /// Request to sign message/operation
+  signRequest,
+  
+  /// Response to sign request
+  signResponse,
+  
+  /// Request to broadcast operation
+  broadcastRequest,
+  
+  /// Response to broadcast request
+  broadcastResponse,
+  
+  /// Request for operation
+  operationRequest,
+  
+  /// Response to operation request
+  operationResponse,
+  
+  /// Disconnect message
+  disconnect,
+  
+  /// Error message
+  error,
+}
 
-  /// Response to a permission request.
-  static const String permissionResponse = 'permission_response';
-
-  /// Operation request (e.g., transaction).
-  static const String operationRequest = 'operation_request';
-
-  /// Response to an operation request.
-  static const String operationResponse = 'operation_response';
-
-  /// Sign payload request.
-  static const String signPayloadRequest = 'sign_payload_request';
-
-  /// Response to a sign payload request.
-  static const String signPayloadResponse = 'sign_payload_response';
-
-  /// Disconnect message.
-  static const String disconnect = 'disconnect';
+/// Extension to convert BeaconMessageType to/from string
+extension BeaconMessageTypeExtension on BeaconMessageType {
+  /// Get string value of message type
+  String get value {
+    switch (this) {
+      case BeaconMessageType.permissionRequest:
+        return 'permission_request';
+      case BeaconMessageType.permissionResponse:
+        return 'permission_response';
+      case BeaconMessageType.signRequest:
+        return 'sign_request';
+      case BeaconMessageType.signResponse:
+        return 'sign_response';
+      case BeaconMessageType.broadcastRequest:
+        return 'broadcast_request';
+      case BeaconMessageType.broadcastResponse:
+        return 'broadcast_response';
+      case BeaconMessageType.operationRequest:
+        return 'operation_request';
+      case BeaconMessageType.operationResponse:
+        return 'operation_response';
+      case BeaconMessageType.disconnect:
+        return 'disconnect';
+      case BeaconMessageType.error:
+        return 'error';
+    }
+  }
+  
+  /// Create BeaconMessageType from string
+  static BeaconMessageType fromString(String value) {
+    switch (value) {
+      case 'permission_request':
+        return BeaconMessageType.permissionRequest;
+      case 'permission_response':
+        return BeaconMessageType.permissionResponse;
+      case 'sign_request':
+        return BeaconMessageType.signRequest;
+      case 'sign_response':
+        return BeaconMessageType.signResponse;
+      case 'broadcast_request':
+        return BeaconMessageType.broadcastRequest;
+      case 'broadcast_response':
+        return BeaconMessageType.broadcastResponse;
+      case 'operation_request':
+        return BeaconMessageType.operationRequest;
+      case 'operation_response':
+        return BeaconMessageType.operationResponse;
+      case 'disconnect':
+        return BeaconMessageType.disconnect;
+      case 'error':
+        return BeaconMessageType.error;
+      default:
+        throw ArgumentError('Unknown message type: $value');
+    }
+  }
 }
 
 /// Represents a peer in the Beacon protocol.
@@ -75,34 +141,30 @@ class BeaconPeer {
 
 /// Base class for all Beacon messages.
 abstract class BeaconMessage {
-  /// The unique identifier of this message.
+  /// The unique ID of the message.
   final String id;
-
-  /// The type of message.
-  final String type;
-
-  /// The version of the Beacon protocol.
+  
+  /// The type of the message.
+  final BeaconMessageType type;
+  
+  /// The version of the protocol.
   final String version;
-
-  /// The sender of this message.
-  final BeaconPeer sender;
-
-  /// The destination of this message.
-  final BeaconPeer destination;
-
+  
+  /// The sender identifier.
+  final String senderId;
+  
   /// Creates a new [BeaconMessage] instance.
   BeaconMessage({
     required this.id,
     required this.type,
     required this.version,
-    required this.sender,
-    required this.destination,
+    required this.senderId,
   });
-
-  /// Creates a [BeaconMessage] instance from a JSON map.
+  
+  /// Factory constructor to create a message from JSON.
   factory BeaconMessage.fromJson(Map<String, dynamic> json) {
-    final String type = json['type'] as String;
-
+    final type = BeaconMessageTypeExtension.fromString(json['type'] as String);
+    
     switch (type) {
       case BeaconMessageType.permissionRequest:
         return PermissionRequestMessage.fromJson(json);
@@ -110,12 +172,12 @@ abstract class BeaconMessage {
         return PermissionResponseMessage.fromJson(json);
       case BeaconMessageType.disconnect:
         return DisconnectMessage.fromJson(json);
-      // TODO: Add other message types
+      // TODO: Implement other message types
       default:
-        throw FormatException('Unknown message type: $type');
+        throw UnimplementedError('Message type ${type.value} is not implemented yet');
     }
   }
-
-  /// Converts this message to a JSON map.
+  
+  /// Convert the message to a JSON map.
   Map<String, dynamic> toJson();
 }

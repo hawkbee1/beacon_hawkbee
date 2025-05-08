@@ -1,71 +1,47 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// Metadata describing an application.
-///
-/// This class contains essential information about a dApp or wallet
-/// that's used for identification and display purposes.
+/// Represents metadata about an application.
 class AppMetadata {
-  /// The unique identifier of the blockchain on which the app operates.
-  final String blockchainIdentifier;
-
-  /// The unique identifier of the sender (app).
-  final String senderId;
-
   /// The name of the application.
   final String name;
-
-  /// An optional URL for the application icon.
-  final String? icon;
-
-  /// Creates a new instance of AppMetadata.
-  const AppMetadata({
-    required this.blockchainIdentifier,
-    required this.senderId,
+  
+  /// The URL of the application's website.
+  final String url;
+  
+  /// The URL of the application's icon.
+  final String? iconUrl;
+  
+  /// The application's identifier.
+  final String? appId;
+  
+  /// The sender identifier used for permissions
+  String get senderId => appId ?? name;
+  
+  /// Creates a new [AppMetadata] instance.
+  AppMetadata({
     required this.name,
-    this.icon,
+    required this.url,
+    this.iconUrl,
+    this.appId,
   });
-
-  /// Creates a new AppMetadata instance from a JSON map.
+  
+  /// Creates an [AppMetadata] instance from a JSON map.
   factory AppMetadata.fromJson(Map<String, dynamic> json) {
     return AppMetadata(
-      blockchainIdentifier: json['blockchainIdentifier'] as String,
-      senderId: json['senderId'] as String,
       name: json['name'] as String,
-      icon: json['icon'] as String?,
+      url: json['url'] as String,
+      iconUrl: json['iconUrl'] as String?,
+      appId: json['appId'] as String?,
     );
   }
-
-  /// Converts this AppMetadata to a JSON map.
+  
+  /// Converts this app metadata to a JSON map.
   Map<String, dynamic> toJson() {
     return {
-      'blockchainIdentifier': blockchainIdentifier,
-      'senderId': senderId,
       'name': name,
-      if (icon != null) 'icon': icon,
+      'url': url,
+      if (iconUrl != null) 'iconUrl': iconUrl,
+      if (appId != null) 'appId': appId,
     };
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is AppMetadata &&
-        other.blockchainIdentifier == blockchainIdentifier &&
-        other.senderId == senderId &&
-        other.name == name &&
-        other.icon == icon;
-  }
-
-  @override
-  int get hashCode {
-    return blockchainIdentifier.hashCode ^
-        senderId.hashCode ^
-        name.hashCode ^
-        (icon?.hashCode ?? 0);
-  }
-
-  @override
-  String toString() {
-    return 'AppMetadata(blockchainIdentifier: $blockchainIdentifier, senderId: $senderId, name: $name, icon: $icon)';
   }
 }

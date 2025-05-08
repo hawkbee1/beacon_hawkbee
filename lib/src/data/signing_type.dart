@@ -1,44 +1,47 @@
 part of 'package:beacon_hawkbee/src/beacon_hawkbee_base.dart';
 
-/// Defines different methods of signing blockchain operations.
+/// Represents the different types of signing operations.
 enum SigningType {
-  /// Operation signing - for standard blockchain operations
-  operation,
-
-  /// Micheline signing - specific to Tezos michelson expressions
-  micheline,
-
-  /// Raw signing - for raw byte data
+  /// Sign raw bytes.
   raw,
+  
+  /// Sign a transaction operation.
+  operation,
+  
+  /// Sign a Micheline expression.
+  micheline,
+  
+  /// Sign data based on a specific schema.
+  dataSchema,
+}
 
-  /// Message signing - for plain text messages
-  message;
-
-  /// Get the string representation of this signing type.
-  String get stringValue {
+/// Extension on SigningType to convert to/from strings
+extension SigningTypeExtension on SigningType {
+  /// Converts SigningType to a string
+  String get value {
     switch (this) {
+      case SigningType.raw:
+        return 'raw';
       case SigningType.operation:
         return 'operation';
       case SigningType.micheline:
         return 'micheline';
-      case SigningType.raw:
-        return 'raw';
-      case SigningType.message:
-        return 'message';
+      case SigningType.dataSchema:
+        return 'data_schema';
     }
   }
-
-  /// Create a SigningType from its string representation.
+  
+  /// Creates a SigningType from a string
   static SigningType fromString(String value) {
-    switch (value.toLowerCase()) {
+    switch (value) {
+      case 'raw':
+        return SigningType.raw;
       case 'operation':
         return SigningType.operation;
       case 'micheline':
         return SigningType.micheline;
-      case 'raw':
-        return SigningType.raw;
-      case 'message':
-        return SigningType.message;
+      case 'data_schema':
+        return SigningType.dataSchema;
       default:
         throw ArgumentError('Unknown signing type: $value');
     }
