@@ -163,9 +163,11 @@ class MatrixP2PClient implements P2PClient {
       final roomId = await _joinOrCreateRoomForPeer(message.recipientId);
 
       // Send the message
-      await _matrixClient
-          .getRoomById(roomId)
-          ?.sendText(message.content, txid: message.id);
+      await _matrixClient.getRoomById(roomId)?.sendTextEvent(
+            'm.room.message',
+            {'msgtype': 'm.text', 'body': message.content},
+            txid: message.id,
+          );
     } catch (e) {
       throw P2PClientError('Failed to send message: $e');
     }

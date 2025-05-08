@@ -47,21 +47,17 @@ class DAppClient extends BeaconConsumer {
       _transport.connect().then((_) {
         _isConnected = true;
 
-        // Subscribe to messages
-        _messageSubscription = _transport.messageStream.listen((message) {
-          _handleMessage(message).then((beaconMessage) {
-            if (beaconMessage != null) {
-              // Check if there's a completer waiting for this response
-              final completer = _responseCompleters[beaconMessage.id];
-              if (completer != null && !completer.isCompleted) {
-                completer.complete(beaconMessage);
-                _responseCompleters.remove(beaconMessage.id);
-              } else {
-                // Forward the message to the stream
-                controller.add(beaconMessage);
-              }
-            }
-          });
+        // Subscribe to messages from the transport
+        _messageSubscription = _transport.messageStream.listen((beaconMessage) {
+          // Check if there's a completer waiting for this response
+          final completer = _responseCompleters[beaconMessage.id];
+          if (completer != null && !completer.isCompleted) {
+            completer.complete(beaconMessage);
+            _responseCompleters.remove(beaconMessage.id);
+          } else {
+            // Forward the message to the stream
+            controller.add(beaconMessage);
+          }
         });
       }).catchError((e) {
         controller.addError(BeaconError(
@@ -149,13 +145,14 @@ class DAppClient extends BeaconConsumer {
   Future<void> send(BeaconMessage message, {bool isTerminal = false}) async {
     // Convert BeaconMessage to ConnectionMessage
     final connectionMessage = ConnectionMessage(
+      id: message.id,
       senderId: senderId,
       recipientId: message.destination.id,
       content: jsonEncode(message.toJson()),
       version: message.version,
     );
 
-    await _transport.send(connectionMessage);
+    await _transport.sendMessage(connectionMessage);
   }
 
   @override

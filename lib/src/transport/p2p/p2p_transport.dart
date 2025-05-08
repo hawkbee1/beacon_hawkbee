@@ -139,7 +139,7 @@ class P2PTransport implements Transport {
     }
   }
 
-  @override
+  // Sending a connection message directly
   Future<void> send(ConnectionMessage message) async {
     if (!_isConnected) {
       throw TransportError('Cannot send message: not connected');

@@ -49,14 +49,10 @@ class WalletClient extends BeaconProducer {
       _transport.connect().then((_) {
         _isConnected = true;
 
-        // Subscribe to messages
-        _messageSubscription = _transport.messageStream.listen((message) {
-          _handleMessage(message).then((beaconMessage) {
-            if (beaconMessage != null) {
-              // Forward the message to the stream
-              controller.add(beaconMessage);
-            }
-          });
+        // Subscribe to messages from the transport
+        _messageSubscription = _transport.messageStream.listen((beaconMessage) {
+          // Forward the message to the stream
+          controller.add(beaconMessage);
         });
       }).catchError((e) {
         controller.addError(BeaconError(
@@ -144,13 +140,14 @@ class WalletClient extends BeaconProducer {
   Future<void> send(BeaconMessage message, {bool isTerminal = false}) async {
     // Convert BeaconMessage to ConnectionMessage
     final connectionMessage = ConnectionMessage(
+      id: message.id,
       senderId: senderId,
       recipientId: message.destination.id,
       content: jsonEncode(message.toJson()),
       version: message.version,
     );
 
-    await _transport.send(connectionMessage);
+    await _transport.sendMessage(connectionMessage);
   }
 
   @override
