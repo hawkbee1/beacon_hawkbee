@@ -125,7 +125,7 @@ class MatrixP2PClient implements P2PClient {
 
     try {
       // Start syncing
-      await _matrixClient.startSync();
+      await _matrixClient.sync();
 
       // Join rooms for all known peers
       final peers = await storageManager.getPeers();
@@ -162,11 +162,7 @@ class MatrixP2PClient implements P2PClient {
       final roomId = await _joinOrCreateRoomForPeer(message.recipientId);
 
       // Send the message
-      await _matrixClient.sendTextEvent(
-        roomId,
-        message.content,
-        txid: message.id,
-      );
+      await _matrixClient.getRoomById(roomId)?.sendText(message.content, txid: message.id);
     } catch (e) {
       throw P2PClientError('Failed to send message: $e');
     }
@@ -192,7 +188,7 @@ class MatrixP2PClient implements P2PClient {
       if (existingRoom.roomId.isNotEmpty) {
         // Join existing room
         final joinedRoom = await _matrixClient.joinRoom(existingRoom.roomId);
-        return joinedRoom.id;
+        return joinedRoom;
       }
 
       // Create new room
@@ -201,9 +197,12 @@ class MatrixP2PClient implements P2PClient {
         preset: CreateRoomPreset.publicChat,
         visibility: Visibility.public,
         topic: 'Beacon SDK communication channel',
+        guestCanJoin: true,
+        worldReadable: true,
+        roomVersion: '6',
       );
 
-      return createdRoom.id;
+      return createdRoom;
     } catch (e) {
       // Fallback to direct creation
       try {
@@ -212,9 +211,12 @@ class MatrixP2PClient implements P2PClient {
           preset: CreateRoomPreset.publicChat,
           visibility: Visibility.public,
           topic: 'Beacon SDK communication channel',
+          guestCanJoin: true,
+          worldReadable: true,
+          roomVersion: '6',
         );
 
-        return createdRoom.id;
+        return createdRoom;
       } catch (e) {
         throw P2PClientError('Failed to create or join room: $e');
       }
