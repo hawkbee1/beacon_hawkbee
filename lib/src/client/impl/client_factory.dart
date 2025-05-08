@@ -34,14 +34,19 @@ class ClientFactory {
     final clientId =
         beaconId ?? await _getOrCreateBeaconId(storage, secureStorage);
 
-    // Create P2P client and transport
+    // Create P2P client
     final p2pClient = MatrixP2PClient(
       appMetadata: appMetadata,
       storageManager: storage,
       homeserver: matrixNode ?? MatrixP2PClient.defaultMatrixServer,
     );
-    // Initialize the P2P client
-    await p2pClient.init();
+
+    try {
+      // Initialize the P2P client
+      await p2pClient.init();
+    } catch (e) {
+      throw Exception('Failed to initialize P2P client: $e');
+    }
 
     // Create the transport with all required parameters
     final transport = P2PTransport(
@@ -80,14 +85,19 @@ class ClientFactory {
     final clientId =
         beaconId ?? await _getOrCreateBeaconId(storage, secureStorage);
 
-    // Create P2P client and transport
+    // Create P2P client
     final p2pClient = MatrixP2PClient(
       appMetadata: appMetadata,
       storageManager: storage,
       homeserver: matrixNode ?? MatrixP2PClient.defaultMatrixServer,
     );
-    // Initialize the P2P client
-    await p2pClient.init();
+
+    try {
+      // Initialize the P2P client
+      await p2pClient.init();
+    } catch (e) {
+      throw Exception('Failed to initialize P2P client: $e');
+    }
 
     // Create the transport with all required parameters
     final transport = P2PTransport(
