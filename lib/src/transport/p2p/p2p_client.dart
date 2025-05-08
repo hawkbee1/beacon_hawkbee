@@ -12,7 +12,9 @@ abstract class P2PClient {
   Stream<ConnectionMessage> get messageStream;
 
   /// Initializes the P2P client.
-  Future<void> init();
+  ///
+  /// This implementation is common across all implementations.
+  Future<void> init([String? options]) async {}
 
   /// Connects to the P2P network.
   Future<void> connect();

@@ -52,7 +52,7 @@ class MatrixP2PClient implements P2PClient {
   bool get isConnected => _isConnected;
 
   @override
-  Future<void> init() async {
+  Future<void> init([String? options]) async {
     if (_isInitialized) return;
 
     try {
@@ -164,8 +164,7 @@ class MatrixP2PClient implements P2PClient {
 
       // Send the message
       await _matrixClient.getRoomById(roomId)?.sendTextEvent(
-            'm.room.message',
-            {'msgtype': 'm.text', 'body': message.content},
+            message.content,
             txid: message.id,
           );
     } catch (e) {
