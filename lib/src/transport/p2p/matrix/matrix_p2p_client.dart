@@ -202,7 +202,11 @@ class MatrixP2PClient implements P2PClient {
         preset: CreateRoomPreset.publicChat,
         visibility: Visibility.public,
         topic: 'Beacon SDK communication channel',
-        creationContent: {'guest_access': 'can_join'},
+        // Setting explicitly required parameters
+        guestCanJoin: true,
+        worldReadable: true,
+        // Empty value but required by API
+        initialState: [],
         roomVersion: '6',
       );
 
@@ -215,7 +219,11 @@ class MatrixP2PClient implements P2PClient {
           preset: CreateRoomPreset.publicChat,
           visibility: Visibility.public,
           topic: 'Beacon SDK communication channel',
-          creationContent: {'guest_access': 'can_join'},
+          // Setting explicitly required parameters
+          guestCanJoin: true,
+          worldReadable: true,
+          // Empty value but required by API
+          initialState: [],
           roomVersion: '6',
         );
 

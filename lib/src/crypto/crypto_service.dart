@@ -26,4 +26,7 @@ abstract class CryptoService {
 
   /// Loads a key pair from secure storage or generates a new one if none exists.
   Future<KeyPair> loadOrGenerateKeyPair(SecureStorage secureStorage);
+
+  /// Generates a cryptographically secure UUID.
+  String generateGUID();
 }
