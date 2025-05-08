@@ -12,6 +12,9 @@ abstract class P2PClient {
   Stream<ConnectionMessage> get messageStream;
 
   /// Initializes the P2P client.
+  ///
+  /// This method should set up the client's initial state, such as loading
+  /// stored credentials or creating new ones.
   Future<void> init();
 
   /// Connects to the P2P network.

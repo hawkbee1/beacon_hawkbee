@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:beacon_hawkbee/beacon_hawkbee.dart';

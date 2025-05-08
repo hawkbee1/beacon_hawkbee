@@ -22,6 +22,7 @@ export 'src/storage/impl/flutter_secure_storage_impl.dart';
 
 // Matrix implementation that is not a part
 export 'src/transport/p2p/matrix/matrix_client_provider.dart';
+export 'src/transport/p2p/matrix/matrix_p2p_client.dart';
 
 // Crypto implementation that is not a part
 export 'src/crypto/impl/sodium_crypto_service.dart';
