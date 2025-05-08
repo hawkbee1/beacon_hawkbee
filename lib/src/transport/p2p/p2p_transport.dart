@@ -14,8 +14,8 @@ class P2PTransport implements Transport {
   /// The sender ID.
   final String _senderId;
 
-  /// Message stream controller.
-  final StreamController<BeaconMessage> _messageController =
+  /// Stream controller for BeaconMessage.
+  final StreamController<BeaconMessage> _beaconMessageController =
       StreamController<BeaconMessage>.broadcast();
 
   /// Flag indicating if transport is connected.
@@ -45,7 +45,7 @@ class P2PTransport implements Transport {
   String get type => TransportType.p2p;
 
   @override
-  Stream<BeaconMessage> get messageStream => _messageController.stream;
+  Stream<BeaconMessage> get messageStream => _beaconMessageController.stream;
 
   @override
   Future<void> connect() async {
@@ -179,7 +179,7 @@ class P2PTransport implements Transport {
       final beaconMessage = BeaconMessage.fromJson(messageJson);
 
       // Add the message to the stream
-      _messageController.add(beaconMessage);
+      _beaconMessageController.add(beaconMessage);
     } catch (e) {
       // Ignore invalid messages
     }
