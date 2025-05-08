@@ -43,7 +43,9 @@ class MatrixP2PClient implements P2PClient {
   }) {
     _matrixClient = Client(
       'BeaconSDK',
-      databaseBuilder: (_) async => MemoryDatabase(),
+      verificationMethods: [],
+      importantStateEvents: [],
+      databaseBuilder: (_) async => FakeMemoryDatabase(),
     );
   }
 
@@ -162,7 +164,9 @@ class MatrixP2PClient implements P2PClient {
       final roomId = await _joinOrCreateRoomForPeer(message.recipientId);
 
       // Send the message
-      await _matrixClient.getRoomById(roomId)?.sendText(message.content, txid: message.id);
+      await _matrixClient
+          .getRoomById(roomId)
+          ?.sendText(message.content, txid: message.id);
     } catch (e) {
       throw P2PClientError('Failed to send message: $e');
     }
@@ -272,4 +276,38 @@ class P2PClientError implements Exception {
 
   @override
   String toString() => 'P2PClientError: $message';
+}
+
+// Fake memory database implementation for Matrix client
+class FakeMemoryDatabase extends DatabaseApi {
+  @override
+  int get maxFileSize => 0;
+  @override
+  Future<void> close() async {}
+  @override
+  Future<void> clear() async {}
+  @override
+  Future<void> deleteOldFiles(int maxSize) async {}
+  @override
+  Future<bool> exists() async => true;
+  @override
+  Future<Document> getDocument(String key) async => {};
+  @override
+  Future<List<String>> getFile(String key) async => [];
+  @override
+  Future<void> insert(String key, Document content) async {}
+  @override
+  Future<void> insertBoxFile(String key, List<String> content) async {}
+  @override
+  Future<void> open() async {}
+  @override
+  Future<List<String>> getAllKeys() async => [];
+  @override
+  Future<void> remove(String key) async {}
+  @override
+  Future<void> update(String key, Document content) async {}
+  @override
+  Future<void> updateInTransaction(String key, Document content) async {}
+  @override
+  Future<void> deleteFromToFile(String key, int from, int to) async {}
 }

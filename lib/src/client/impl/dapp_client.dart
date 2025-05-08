@@ -39,21 +39,33 @@ class DAppClient extends BeaconConsumer {
   Stream<BeaconMessage> connect() {
     final controller = StreamController<BeaconMessage>.broadcast();
 
-    _messageSubscription = _transport.start().listen((message) {
-      _handleMessage(message).then((beaconMessage) {
-        if (beaconMessage != null) {
-          // Check if there's a completer waiting for this response
-          final completer = _responseCompleters[beaconMessage.id];
-          if (completer != null && !completer.isCompleted) {
-            completer.complete(beaconMessage);
-            _responseCompleters.remove(beaconMessage.id);
-          } else {
-            // Forward the message to the stream
-            controller.add(beaconMessage);
-          }
-        }
+    try {
+      // Connect to transport
+      _transport.connect().then((_) {
+        _isConnected = true;
+
+        // Subscribe to messages
+        _messageSubscription = _transport.messageStream.listen((message) {
+          _handleMessage(message).then((beaconMessage) {
+            if (beaconMessage != null) {
+              // Check if there's a completer waiting for this response
+              final completer = _responseCompleters[beaconMessage.id];
+              if (completer != null && !completer.isCompleted) {
+                completer.complete(beaconMessage);
+                _responseCompleters.remove(beaconMessage.id);
+              } else {
+                // Forward the message to the stream
+                controller.add(beaconMessage);
+              }
+            }
+          });
+        });
+      }).catchError((e) {
+        controller.addError(BeaconError('Failed to connect: $e'));
       });
-    });
+    } catch (e) {
+      controller.addError(BeaconError('Failed to connect: $e'));
+    }
 
     return controller.stream;
   }

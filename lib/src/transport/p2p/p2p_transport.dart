@@ -139,6 +139,15 @@ class P2PTransport implements Transport {
     }
   }
 
+  @override
+  Future<void> send(ConnectionMessage message) async {
+    if (!_isConnected) {
+      throw TransportError('Cannot send message: not connected');
+    }
+
+    await _p2pClient.sendMessage(message);
+  }
+
   /// Handles an incoming message from the P2P client.
   Future<void> _handleIncomingMessage(ConnectionMessage message) async {
     try {

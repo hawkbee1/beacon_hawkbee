@@ -39,15 +39,30 @@ class WalletClient extends BeaconProducer {
 
   @override
   Stream<BeaconMessage> connect() {
-    _messageSubscription = _transport.start().listen((message) {
-      _handleMessage(message).then((beaconMessage) {
-        if (beaconMessage != null) {
-          _messageController.add(beaconMessage);
-        }
-      });
-    });
+    final controller = StreamController<BeaconMessage>.broadcast();
 
-    return _messageController.stream;
+    try {
+      // Connect to transport
+      _transport.connect().then((_) {
+        _isConnected = true;
+
+        // Subscribe to messages
+        _messageSubscription = _transport.messageStream.listen((message) {
+          _handleMessage(message).then((beaconMessage) {
+            if (beaconMessage != null) {
+              // Forward the message to the stream
+              controller.add(beaconMessage);
+            }
+          });
+        });
+      }).catchError((e) {
+        controller.addError(BeaconError('Failed to connect: $e'));
+      });
+    } catch (e) {
+      controller.addError(BeaconError('Failed to connect: $e'));
+    }
+
+    return controller.stream;
   }
 
   @override
