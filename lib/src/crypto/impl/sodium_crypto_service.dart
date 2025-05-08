@@ -142,12 +142,6 @@ class SodiumCryptoService implements beacon.CryptoService {
     return newKeyPair;
   }
 
-  @override
-  String generateGUID() {
-    // Generate a secure random UUID using the Uuid package
-    return const Uuid().v4();
-  }
-
   // Helper methods
 
   Uint8List _generateNonce() {

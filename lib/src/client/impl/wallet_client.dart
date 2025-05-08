@@ -49,10 +49,14 @@ class WalletClient extends BeaconProducer {
       _transport.connect().then((_) {
         _isConnected = true;
 
-        // Subscribe to messages from the transport
-        _messageSubscription = _transport.messageStream.listen((beaconMessage) {
-          // Forward the message to the stream
-          controller.add(beaconMessage);
+        // Subscribe to messages
+        _transport.messageStream.listen((connectionMessage) {
+          _handleConnectionMessage(connectionMessage).then((beaconMessage) {
+            if (beaconMessage != null) {
+              // Forward the message to the stream
+              controller.add(beaconMessage);
+            }
+          });
         });
       }).catchError((e) {
         controller.addError(BeaconError(
@@ -138,16 +142,8 @@ class WalletClient extends BeaconProducer {
 
   @override
   Future<void> send(BeaconMessage message, {bool isTerminal = false}) async {
-    // Convert BeaconMessage to ConnectionMessage
-    final connectionMessage = ConnectionMessage(
-      id: message.id,
-      senderId: senderId,
-      recipientId: message.destination.id,
-      content: jsonEncode(message.toJson()),
-      version: message.version,
-    );
-
-    await _transport.sendMessage(connectionMessage);
+    // Send the BeaconMessage directly
+    await _transport.sendMessage(message);
   }
 
   @override
@@ -222,7 +218,8 @@ class WalletClient extends BeaconProducer {
   }
 
   /// Handles a received message from the transport layer.
-  Future<BeaconMessage?> _handleMessage(ConnectionMessage message) async {
+  Future<BeaconMessage?> _handleConnectionMessage(
+      ConnectionMessage message) async {
     try {
       final data = jsonDecode(message.content) as Map<String, dynamic>;
       final beaconMessage = BeaconMessage.fromJson(data);

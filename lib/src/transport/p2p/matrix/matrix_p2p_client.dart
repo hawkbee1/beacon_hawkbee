@@ -52,7 +52,7 @@ class MatrixP2PClient implements P2PClient {
   bool get isConnected => _isConnected;
 
   @override
-  Future<void> init([String? options]) async {
+  Future<void> init() async {
     if (_isInitialized) return;
 
     try {
@@ -165,7 +165,7 @@ class MatrixP2PClient implements P2PClient {
       // Send the message
       await _matrixClient.getRoomById(roomId)?.sendTextEvent(
             message.content,
-            txid: message.id,
+            msgtype: "m.room.message",
           );
     } catch (e) {
       throw P2PClientError('Failed to send message: $e');
@@ -201,11 +201,8 @@ class MatrixP2PClient implements P2PClient {
         preset: CreateRoomPreset.publicChat,
         visibility: Visibility.public,
         topic: 'Beacon SDK communication channel',
-        // Setting explicitly required parameters
-        guestCanJoin: true,
-        worldReadable: true,
-        // Empty value but required by API
-        initialState: [],
+        // Use creationContent instead of individual parameters
+        creationContent: {'guest_access': 'can_join', 'world_readable': true},
         roomVersion: '6',
       );
 
@@ -218,11 +215,8 @@ class MatrixP2PClient implements P2PClient {
           preset: CreateRoomPreset.publicChat,
           visibility: Visibility.public,
           topic: 'Beacon SDK communication channel',
-          // Setting explicitly required parameters
-          guestCanJoin: true,
-          worldReadable: true,
-          // Empty value but required by API
-          initialState: [],
+          // Use creationContent instead of individual parameters
+          creationContent: {'guest_access': 'can_join', 'world_readable': true},
           roomVersion: '6',
         );
 

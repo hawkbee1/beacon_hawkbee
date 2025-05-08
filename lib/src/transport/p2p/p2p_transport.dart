@@ -139,40 +139,13 @@ class P2PTransport implements Transport {
     }
   }
 
-  // Sending a connection message directly
+  @override
   Future<void> send(ConnectionMessage message) async {
     if (!_isConnected) {
       throw TransportError('Cannot send message: not connected');
     }
 
     await _p2pClient.sendMessage(message);
-  }
-
-  /// Creates a pairing request that can be displayed as a QR code or shared as a deep link.
-  Future<String> createPairingRequest() async {
-    if (!_isConnected) {
-      throw TransportError('Cannot create pairing request: not connected');
-    }
-
-    try {
-      // Create pairing message with our information
-      final pairingMessage = PairingMessage(
-        id: _cryptoService.generateGUID(),
-        type: PairingMessageType.pairingRequest,
-        name: 'Beacon SDK P2P Transport',
-        version: '3',
-        publicKey: _senderId,
-        relayServer: '', // We don't use relays in P2P mode
-      );
-
-      // Convert it to JSON
-      final jsonString = jsonEncode(pairingMessage.toJson());
-
-      // Return the encoded pairing data
-      return jsonString;
-    } catch (e) {
-      throw TransportError('Failed to create pairing request: $e');
-    }
   }
 
   /// Handles an incoming message from the P2P client.

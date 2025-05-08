@@ -26,9 +26,6 @@ class PairingMessage {
   /// The public key of the sender.
   final String publicKey;
 
-  /// The relay server URL used for communication.
-  final String relayServer;
-
   /// Optional URL to the sender's app.
   final String? appUrl;
 
@@ -42,7 +39,6 @@ class PairingMessage {
     required this.name,
     required this.version,
     required this.publicKey,
-    required this.relayServer,
     this.appUrl,
     this.icon,
   });
@@ -58,7 +54,6 @@ class PairingMessage {
       name: json['name'] as String,
       version: json['version'] as String,
       publicKey: json['publicKey'] as String,
-      relayServer: json['relayServer'] as String,
       appUrl: json['appUrl'] as String?,
       icon: json['icon'] as String?,
     );
@@ -72,7 +67,6 @@ class PairingMessage {
       'name': name,
       'version': version,
       'publicKey': publicKey,
-      'relayServer': relayServer,
       if (appUrl != null) 'appUrl': appUrl,
       if (icon != null) 'icon': icon,
     };
