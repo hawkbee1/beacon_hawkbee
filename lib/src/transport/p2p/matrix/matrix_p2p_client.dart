@@ -43,8 +43,7 @@ class MatrixP2PClient implements P2PClient {
   }) {
     _matrixClient = Client(
       'BeaconSDK',
-      databaseBuilder: (_) async =>
-          Database.inMemoryDatabaseBuilder('BeaconSDK'),
+      databaseBuilder: (_) async => MemoryDatabase(),
     );
   }
 
