@@ -174,18 +174,37 @@ class WalletClient extends BeaconProducer {
       destination: request.origin,
       requestId: requestId,
       publicKey: publicKey,
-      network: Network(type: network, name: network),
+      network: Network(
+        type: network,
+        name: network,
+        rpcUrl: network == 'ghostnet'
+            ? 'https://ghostnet.ecadinfra.com'
+            : 'https://mainnet.api.tez.ie',
+      ),
       address: address,
       scopes: scopes,
       appMetadata: appMetadata,
     );
 
-    // Store permission
-    final permission = Permission(
-      blockchainIdentifier: network,
-      accountId: address,
-      senderId: request.senderId,
-      connectedAt: DateTime.now().millisecondsSinceEpoch,
+    // Create the account object with required data
+    final account = TezosAccount(
+      publicKey: publicKey,
+      address: address,
+      network: TezosNetwork(
+        type: network,
+        name: network,
+        rpcUrl: network == 'ghostnet'
+            ? 'https://ghostnet.ecadinfra.com'
+            : 'https://mainnet.api.tez.ie',
+      ),
+    );
+
+    // Store permission with correct parameters
+    final permission = TezosPermission(
+      account: account,
+      appMetadata: appMetadata,
+      scopes: scopes,
+      createdAt: DateTime.now(),
     );
 
     await _storageManager.addPermissions([permission]);
@@ -277,7 +296,7 @@ class WalletClient extends BeaconProducer {
           name: appMetadata.name,
           version: '3',
           publicKey: senderId,
-          icon: appMetadata.icon,
+          icon: appMetadata.iconUrl,
         );
 
         // The response would typically be displayed as a QR code or deep link

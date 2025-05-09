@@ -7,6 +7,7 @@ import 'package:beacon_hawkbee/src/storage/impl/shared_preferences_storage.dart'
 import 'package:beacon_hawkbee/src/transport/p2p/matrix/matrix_p2p_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sodium/sodium.dart';
+import 'package:sodium/config.dart';
 import 'package:uuid/uuid.dart';
 
 /// Factory for creating Beacon clients with appropriate dependencies.
@@ -23,8 +24,8 @@ class ClientFactory {
     final storage = SharedPreferencesStorage(prefs);
     final secureStorage = FlutterSecureStorageImpl();
 
-    // Initialize sodium with proper init method
-    final sodiumInstance = sodium ?? await SodiumInit.init(SodiumInit.default_);
+    // Initialize sodium properly with the required Config parameter
+    final sodiumInstance = sodium ?? await SodiumInit.init(Config());
     final cryptoService = SodiumCryptoService(sodiumInstance);
 
     // Generate or load beacon ID
@@ -74,8 +75,8 @@ class ClientFactory {
     final storage = SharedPreferencesStorage(prefs);
     final secureStorage = FlutterSecureStorageImpl();
 
-    // Initialize sodium with proper init method
-    final sodiumInstance = sodium ?? await SodiumInit.init(SodiumInit.default_);
+    // Initialize sodium properly with the required Config parameter
+    final sodiumInstance = sodium ?? await SodiumInit.init(Config());
     final cryptoService = SodiumCryptoService(sodiumInstance);
 
     // Generate or load beacon ID

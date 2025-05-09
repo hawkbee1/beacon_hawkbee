@@ -177,6 +177,9 @@ class DAppClient extends BeaconConsumer {
       network: Network(
         type: network ?? 'mainnet',
         name: network ?? 'Mainnet',
+        rpcUrl: network == 'ghostnet'
+            ? 'https://ghostnet.ecadinfra.com'
+            : 'https://mainnet.api.tez.ie',
       ),
       scopes: scopes,
     );
