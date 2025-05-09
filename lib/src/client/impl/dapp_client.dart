@@ -192,12 +192,18 @@ class DAppClient extends BeaconConsumer {
     final response = await completer.future;
 
     if (response is PermissionResponseMessage) {
-      // Create and store permission
+      // Create account from response
+      final account = Account(
+        address: response.address,
+        network: response.network,
+        publicKey: response.publicKey,
+      );
+
+      // Create and store permission with required parameters
       final permission = Permission(
-        blockchainIdentifier: response.network.type,
-        accountId: response.address,
-        senderId: senderId,
-        connectedAt: DateTime.now().millisecondsSinceEpoch,
+        account: account,
+        appMetadata: appMetadata,
+        scopes: response.scopes ?? [],
       );
 
       await _storageManager.addPermissions([permission]);
