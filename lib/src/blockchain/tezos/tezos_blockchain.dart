@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:beacon_hawkbee/beacon_hawkbee.dart';
 
 /// Implementation of the [Blockchain] interface for Tezos.
@@ -48,7 +46,6 @@ class TezosAccount extends Account {
     required super.address,
     required TezosNetwork network,
   }) : super(
-          blockchainIdentifier: TezosBlockchain.blockchainIdentifier,
           network: network,
         );
 
@@ -64,34 +61,31 @@ class TezosAccount extends Account {
 
 /// Represents a Tezos network.
 class TezosNetwork extends Network {
-  /// The RPC URL for the network.
-  final String? rpcUrl;
-
   /// Creates a new [TezosNetwork] instance.
-  const TezosNetwork({
+  TezosNetwork({
     required super.type,
     required super.name,
-    this.rpcUrl,
-  }) : super(rpcUrl: rpcUrl);
+    required super.rpcUrl,
+  });
 
   /// Creates a new TezosNetwork instance from a JSON map.
   factory TezosNetwork.fromJson(Map<String, dynamic> json) {
     return TezosNetwork(
       type: json['type'] as String,
       name: json['name'] as String,
-      rpcUrl: json['rpcUrl'] as String?,
+      rpcUrl: json['rpcUrl'] as String,
     );
   }
 
   /// Predefined Tezos mainnet.
-  static const TezosNetwork mainnet = TezosNetwork(
+  static final TezosNetwork mainnet = TezosNetwork(
     type: 'mainnet',
     name: 'Mainnet',
     rpcUrl: 'https://mainnet.api.tez.ie',
   );
 
   /// Predefined Tezos ghostnet testnet.
-  static const TezosNetwork ghostnet = TezosNetwork(
+  static final TezosNetwork ghostnet = TezosNetwork(
     type: 'ghostnet',
     name: 'Ghostnet',
     rpcUrl: 'https://ghostnet.ecadinfra.com',
@@ -104,29 +98,33 @@ class TezosPermission extends Permission {
   final List<String> scopes;
 
   /// Creates a new [TezosPermission] instance.
-  const TezosPermission({
-    required super.accountId,
-    required super.senderId,
-    required super.connectedAt,
+  TezosPermission({
+    required Account account,
+    required AppMetadata appMetadata,
     required this.scopes,
+    DateTime? createdAt,
   }) : super(
-          blockchainIdentifier: TezosBlockchain.blockchainIdentifier,
+          account: account,
+          appMetadata: appMetadata,
+          scopes: scopes,
+          createdAt: createdAt,
         );
 
   /// Creates a new TezosPermission instance from a JSON map.
   factory TezosPermission.fromJson(Map<String, dynamic> json) {
     return TezosPermission(
-      accountId: json['accountId'] as String,
-      senderId: json['senderId'] as String,
-      connectedAt: json['connectedAt'] as int,
+      account: TezosAccount.fromJson(json['account'] as Map<String, dynamic>),
+      appMetadata:
+          AppMetadata.fromJson(json['appMetadata'] as Map<String, dynamic>),
       scopes: (json['scopes'] as List<dynamic>).cast<String>(),
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
   @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
-    json['scopes'] = scopes;
+    // scopes is already included in the parent toJson method
     return json;
   }
 }
