@@ -27,6 +27,18 @@ abstract class TezosOperationRequest extends BeaconMessage {
     required super.destination,
     required super.type,
   });
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type.value,
+      'version': version,
+      'senderId': senderId,
+      'origin': origin.toJson(),
+      'destination': destination.toJson(),
+    };
+  }
 }
 
 /// Request to sign a Tezos operation.
@@ -113,7 +125,8 @@ class TezosSignPayloadRequest extends TezosOperationRequest {
           Connection.fromJson(json['destination'] as Map<String, dynamic>),
       sourceAddress: json['sourceAddress'] as String,
       payload: json['payload'] as String,
-      signingType: SigningType.fromString(json['signingType'] as String),
+      signingType:
+          SigningTypeExtension.fromString(json['signingType'] as String),
     );
   }
 
