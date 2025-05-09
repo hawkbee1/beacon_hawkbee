@@ -177,11 +177,15 @@ class TezosOperationResponse extends BeaconMessage {
 
   @override
   Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json.addAll({
+    return {
+      'id': id,
+      'type': type.value,
+      'version': version,
+      'senderId': senderId,
+      'origin': origin.toJson(),
+      'destination': destination.toJson(),
       'requestId': requestId,
       'transactionHash': transactionHash,
-    });
-    return json;
+    };
   }
 }

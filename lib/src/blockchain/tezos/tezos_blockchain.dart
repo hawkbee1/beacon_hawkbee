@@ -43,7 +43,7 @@ class TezosBlockchain implements Blockchain {
 /// Represents a Tezos account.
 class TezosAccount extends Account {
   /// Creates a new [TezosAccount] instance.
-  const TezosAccount({
+  TezosAccount({
     required super.publicKey,
     required super.address,
     required TezosNetwork network,
