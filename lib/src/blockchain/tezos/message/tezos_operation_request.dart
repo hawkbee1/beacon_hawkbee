@@ -19,7 +19,7 @@ enum TezosOperationType {
 /// Base class for all Tezos operation requests.
 abstract class TezosOperationRequest extends BeaconMessage {
   /// Creates a new [TezosOperationRequest] instance.
-  const TezosOperationRequest({
+  TezosOperationRequest({
     required super.id,
     required super.senderId,
     required super.version,

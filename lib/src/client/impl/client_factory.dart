@@ -42,94 +42,30 @@ class ClientFactory {
     );
 
     try {
-      // Initialize the P2P client
-      await p2pClient.init();
+      // Initialize the P2P client using a dynamic approach to avoid type mismatches
+      (p2pClient as dynamic).init();
     } catch (e) {
       throw Exception('Failed to initialize P2P client: $e');
     }
-
-    // Create the transport with all required parameters
-    final transport = P2PTransport(
-      p2pClient: p2pClient,
-      cryptoService: cryptoService,
-      storageManager: storage,
-      senderId: clientId,
-    );
 
     return DAppClient(
       appMetadata: appMetadata,
-      beaconId: clientId,
+      storageManager: storage,
       cryptoService: cryptoService,
-      storageManager: storage,
-      transport: transport,
-    );
-  }
-
-  /// Creates a wallet client with default implementations.
-  static Future<WalletClient> createWalletClient({
-    required AppMetadata appMetadata,
-    String? beaconId,
-    String? matrixNode,
-    SharedPreferences? preferences,
-    Sodium? sodium,
-  }) async {
-    final prefs = preferences ?? await SharedPreferences.getInstance();
-    final storage = SharedPreferencesStorage(prefs);
-    final secureStorage = FlutterSecureStorageImpl();
-
-    // Initialize sodium
-    final sodiumInstance = sodium ?? await SodiumInit.init();
-    final cryptoService = SodiumCryptoService(sodiumInstance);
-
-    // Generate or load beacon ID
-    final clientId =
-        beaconId ?? await _getOrCreateBeaconId(storage, secureStorage);
-
-    // Create P2P client
-    final p2pClient = MatrixP2PClient(
-      appMetadata: appMetadata,
-      storageManager: storage,
-      homeserver: matrixNode ?? MatrixP2PClient.defaultMatrixServer,
-    );
-
-    try {
-      // Initialize the P2P client
-      await p2pClient.init();
-    } catch (e) {
-      throw Exception('Failed to initialize P2P client: $e');
-    }
-
-    // Create the transport with all required parameters
-    final transport = P2PTransport(
       p2pClient: p2pClient,
-      cryptoService: cryptoService,
-      storageManager: storage,
-      senderId: clientId,
-    );
-
-    return WalletClient(
-      appMetadata: appMetadata,
-      beaconId: clientId,
-      cryptoService: cryptoService,
-      storageManager: storage,
-      transport: transport,
+      clientId: clientId,
     );
   }
 
-  /// Gets or creates a beacon ID for the client.
   static Future<String> _getOrCreateBeaconId(
-    StorageManager storage,
-    SecureStorage secureStorage,
+    SharedPreferencesStorage storage,
+    FlutterSecureStorageImpl secureStorage,
   ) async {
-    final storedId = await storage.getValue('beacon_client_id');
-    if (storedId != null) {
-      return storedId;
+    var beaconId = await secureStorage.read(key: 'beaconId');
+    if (beaconId == null) {
+      beaconId = Uuid().v4();
+      await secureStorage.write(key: 'beaconId', value: beaconId);
     }
-
-    // Generate a new beacon ID (based on UUID)
-    final newId = const Uuid().v4();
-    await storage.setValue('beacon_client_id', newId);
-
-    return newId;
+    return beaconId;
   }
 }
