@@ -151,7 +151,7 @@ class TezosOperationResponse extends BeaconMessage {
   final String transactionHash;
 
   /// Creates a new [TezosOperationResponse] instance.
-  const TezosOperationResponse({
+  TezosOperationResponse({
     required super.id,
     required super.senderId,
     required super.version,
