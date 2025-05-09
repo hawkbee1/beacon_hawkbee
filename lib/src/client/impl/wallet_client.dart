@@ -233,8 +233,21 @@ class WalletClient extends BeaconProducer {
       description: errorMessage ?? 'Permission denied by user',
     );
 
-    // TODO: Implement error response message
-    // This requires adding an error response message type to the protocol
+    // Create error response message
+    final id = await _cryptoService.guid();
+    final errorResponseMessage = BeaconErrorResponseMessage(
+      id: id,
+      senderId: senderId,
+      version: request.version,
+      origin: Connection(type: ConnectionType.p2p, id: senderId),
+      destination: request.origin,
+      requestId: requestId,
+      errorType: error.code,
+      errorMessage: error.description,
+    );
+
+    // Send error response
+    await send(errorResponseMessage);
   }
 
   /// Handles a received message from the transport layer.

@@ -24,7 +24,8 @@ class ClientFactory {
     final secureStorage = FlutterSecureStorageImpl();
 
     // Initialize sodium with function parameter as required by the API
-    final sodiumInstance = sodium ?? await SodiumInit.init(() => Sodium());
+    final sodiumInstance =
+        sodium ?? await SodiumInit.init(() => Sodium.instance);
     final cryptoService = SodiumCryptoService(sodiumInstance);
 
     // Generate or load beacon ID
@@ -75,7 +76,8 @@ class ClientFactory {
     final secureStorage = FlutterSecureStorageImpl();
 
     // Initialize sodium with function parameter as required by the API
-    final sodiumInstance = sodium ?? await SodiumInit.init(() => Sodium());
+    final sodiumInstance =
+        sodium ?? await SodiumInit.init(() => Sodium.instance);
     final cryptoService = SodiumCryptoService(sodiumInstance);
 
     // Generate or load beacon ID

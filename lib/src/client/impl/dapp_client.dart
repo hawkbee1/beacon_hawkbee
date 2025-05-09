@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:beacon_hawkbee/beacon_hawkbee.dart';
-import 'package:uuid/uuid.dart';
 
 /// Implementation of a Beacon client for dApps.
 ///
@@ -19,12 +18,6 @@ class DAppClient extends BeaconConsumer {
 
   /// Completer for handling responses from wallets.
   final Map<String, Completer<BeaconMessage>> _responseCompleters = {};
-
-  /// Message stream subscription.
-  StreamSubscription<BeaconMessage>? _messageSubscription;
-
-  /// Connection state flag
-  bool _isConnected = false;
 
   /// Creates a new [DAppClient] instance.
   DAppClient({
@@ -45,8 +38,6 @@ class DAppClient extends BeaconConsumer {
     try {
       // Connect to transport
       _transport.connect().then((_) {
-        _isConnected = true;
-
         // Subscribe to messages - they are already BeaconMessage objects
         _transport.messageStream.listen((beaconMessage) {
           // Check if there's a completer waiting for this response
@@ -206,7 +197,7 @@ class DAppClient extends BeaconConsumer {
       final permission = Permission(
         account: account,
         appMetadata: appMetadata,
-        scopes: response.scopes ?? [],
+        scopes: response.scopes,
       );
 
       await _storageManager.addPermissions([permission]);
@@ -217,17 +208,6 @@ class DAppClient extends BeaconConsumer {
         code: BeaconError.notGrantedError,
         description: 'Permission request was not granted',
       );
-    }
-  }
-
-  /// Handles a received message from the transport layer.
-  Future<BeaconMessage?> _handleConnectionMessage(
-      ConnectionMessage message) async {
-    try {
-      final data = jsonDecode(message.content) as Map<String, dynamic>;
-      return BeaconMessage.fromJson(data);
-    } catch (e) {
-      return null;
     }
   }
 
