@@ -185,7 +185,12 @@ class MatrixP2PClient implements P2PClient {
       final rooms = await _matrixClient.getPublicRooms();
       final existingRoom = rooms.chunk.firstWhere(
         (room) => room.name == roomAlias,
-        orElse: () => PublicRoomsChunk(roomId: ''),
+        orElse: () => PublicRoomsChunk(
+          roomId: '',
+          worldReadable: false,
+          guestCanJoin: false,
+          numJoinedMembers: 0,
+        ),
       );
 
       if (existingRoom.roomId.isNotEmpty) {
